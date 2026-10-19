@@ -70,23 +70,34 @@ for (const action of ["Enter", "검색 버튼"] as const) {
   });
 }
 
-test("한글 조합 중과 조합 확정 Enter에는 조회하지 않고 조합 종료 후 검색한다", async ({ page }) => {
+test("한글 조합이 끝나지 않아도 포커스를 유지한 채 300ms 후 검색하고 이어서 입력할 수 있다", async ({ page }) => {
   const input = await openWithPausedClock(page);
   const queries = watchSearches(page);
-  await input.dispatchEvent("compositionstart", { data: "" });
-  await input.fill("기");
-  await page.clock.runFor(1_000);
-  await input.fill("기하");
-  await input.dispatchEvent("keydown", { key: "Enter", code: "Enter", keyCode: 229, isComposing: true });
-  await page.clock.runFor(1_000);
-  expect(queries).toEqual([]);
-  expect(new URL(page.url()).search).toBe("");
-  await input.dispatchEvent("compositionend", { data: "하" });
+  const ime = await page.context().newCDPSession(page);
+  await input.focus();
+  // 브라우저의 실제 조합 영역을 유지한다. compositionend나 blur를 보내지 않는다.
+  await ime.send("Input.imeSetComposition", { text: "기", selectionStart: 1, selectionEnd: 1 });
+  await page.clock.runFor(200);
+  await ime.send("Input.imeSetComposition", { text: "기하", selectionStart: 2, selectionEnd: 2 });
   await page.clock.runFor(299);
   expect(queries).toEqual([]);
   await page.clock.runFor(1);
   await expectResult(page, "전체 2개");
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue("기하");
   expect(queries).toEqual(["imatch.기하"]);
+
+  // 검색 후에도 조합 영역에 이어 입력할 수 있어야 한다.
+  await ime.send("Input.imeSetComposition", { text: "시즌", selectionStart: 2, selectionEnd: 2 });
+  await page.clock.runFor(300);
+  await expectResult(page, "전체 18개");
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue("시즌");
+  expect(queries).toEqual(["imatch.기하", "imatch.시즌"]);
+  await ime.send("Input.insertText", { text: "시즌" });
+  await page.clock.runFor(1_000);
+  expect(queries).toHaveLength(2);
+  await ime.detach();
 });
 
 test("자동 검색은 이력을 늘리지 않고 뒤로 가기 전에 예약한 검색을 취소한다", async ({ page }) => {

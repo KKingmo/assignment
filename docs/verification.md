@@ -17,7 +17,7 @@
 | `npm run test:e2e -- --workers=4` | 프로덕션 빌드·실행 성공, 자동 검색 포함 60개 통과 |
 | `npm run test:e2e:live -- --workers=2` | 실제 연결 설정으로 빌드·실행 성공, 5개 통과 |
 
-위 표는 최종 실행 결과이며 실패·재시도·건너뛴 테스트는 없다. fnm 환경에서는 각 명령 앞에 `fnm exec --using=22.16.0`을 붙여 실행했다. E2E 두 명령은 같은 빌드 경로와 포트를 사용하므로 순서대로 실행한다.
+위 표는 `e215a15` 기준 전체 검증 결과이며 실패·재시도·건너뛴 테스트는 없다. 이후 한글 자동 검색 수정의 로컬 검증 범위는 아래에 별도로 기록했다. fnm 환경에서는 각 명령 앞에 `fnm exec --using=22.16.0`을 붙여 실행했다. E2E 두 명령은 같은 빌드 경로와 포트를 사용하므로 순서대로 실행한다.
 
 ## 최초 Vercel 공개 배포 검증
 
@@ -43,7 +43,7 @@ PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e:l
 
 최초 배포 이후 `9bdc69c`에서 문서와 외부 URL 검증 기준을 갱신했다. 다음 자동 검색 변경은 별도로 검증했다.
 
-## 자동 검색 변경 검증
+## 초기 자동 검색 변경 검증
 
 `e215a15`에서 300ms 디바운스 자동 검색을 추가했다. [catalog-debounce.spec.ts](../tests/e2e/catalog-debounce.spec.ts)의 7개 시나리오를 포함해 로컬 전체 E2E 60개가 통과했다. Vitest 80개, 린트·타입 검사, 실제 Supabase 연결 5개도 통과했다.
 
@@ -65,6 +65,20 @@ Production 배포 `assignment-jihk3ees5-kkingmos-projects.vercel.app`이 Ready�
 PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e -- tests/e2e/catalog-debounce.spec.ts --workers=4
 PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e:live -- --workers=2
 ```
+
+## 한글 조합 중 자동 검색 수정 — 로컬 검증
+
+초기 구현은 한글 조합이 끝날 때까지 디바운스 실행을 막았다. 마지막 글자의 조합이 유지되면 입력을 멈춰도 조회하지 않는 문제를 재현했다. 자동 검색의 조합 대기 조건을 제거해 입력 포커스와 조합 상태에 관계없이 마지막 입력 후 300ms에 조회하도록 수정했다.
+
+Chromium CDP의 `Input.imeSetComposition`으로 조합 종료 없이 `기하`를 입력하는 회귀 테스트가 수정 전 실패하고 수정 후 통과했다. 검색 후에도 포커스와 입력을 유지하고, 이어지는 조합 입력을 조회하며, 조합 확정 시 중복 요청하지 않는 것을 확인했다.
+
+```bash
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 npm run test:e2e -- tests/e2e/catalog-debounce.spec.ts tests/e2e/catalog-navigation.spec.ts --workers=4
+```
+
+로컬 개발 서버에서 검색·URL 탐색 테스트 15개와 린트·타입 검사가 통과했다. 별도로 응답을 가로채지 않는 실제 Supabase 조회에서 `기하` 입력 후 HTTP 200, 결과 2개, 입력 포커스 유지, 조합 상태 유지를 확인했다. OS 한글 입력기의 실기기 검증은 포함하지 않는다.
+
+2026-10-19 배포 전에는 로고 자간 변경까지 포함한 전체 작업 트리에서 린트·타입 검사, Vitest 80개와 프로덕션 빌드 기반 E2E 60개를 다시 실행해 모두 통과했다. E2E는 13.1초에 완료됐으며 테스트 실패·재시도·건너뛴 항목은 없었다.
 
 ## 데이터 흐름
 

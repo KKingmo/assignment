@@ -17,7 +17,6 @@
   color: var(--color-brand);
   font-size: var(--font-size-xl);
   font-weight: 800;
-  letter-spacing: -1.2px;
   line-height: var(--line-height-tight);
   white-space: nowrap;
 }

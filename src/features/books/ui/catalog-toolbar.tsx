@@ -24,7 +24,7 @@ export function CatalogToolbar({ params = DEFAULT_CATALOG_PARAMS, search = "", d
 
   useEffect(() => {
     const query = normalizeQuery(input.draft);
-    if (disabled || composing || !onChange || input.search !== search || input.draftSearch !== search || query === params.query) return;
+    if (disabled || !onChange || input.search !== search || input.draftSearch !== search || query === params.query) return;
 
     const timer = setTimeout(() => {
       // URL 이동 직후의 렌더링 전에도 이전 검색이 새 조건을 덮지 않는다.
@@ -35,7 +35,7 @@ export function CatalogToolbar({ params = DEFAULT_CATALOG_PARAMS, search = "", d
     }, 300);
     pendingSearch.current = timer;
     return () => clearTimeout(timer);
-  }, [input, params.query, search, disabled, composing, onChange]);
+  }, [input, params.query, search, disabled, onChange]);
 
   function setDraft(draft: string) {
     clearTimeout(pendingSearch.current);
@@ -71,10 +71,7 @@ export function CatalogToolbar({ params = DEFAULT_CATALOG_PARAMS, search = "", d
         autoComplete="off"
         enterKeyHint="search"
         onChange={(event) => setDraft(event.target.value)}
-        onCompositionStart={() => {
-          clearTimeout(pendingSearch.current);
-          setComposing(true);
-        }}
+        onCompositionStart={() => setComposing(true)}
         onCompositionEnd={(event) => {
           setComposing(false);
           setDraft(event.currentTarget.value);
@@ -91,7 +88,7 @@ export function CatalogToolbar({ params = DEFAULT_CATALOG_PARAMS, search = "", d
           <Button variant="ghost" aria-pressed={params.kind === kind} disabled={disabled} key={kind} onClick={() => {
             clearTimeout(pendingSearch.current);
             const query = normalizeQuery(input.draft);
-            if (!composing && query !== params.query) onChange?.({ type: "search", query }, { replace: true });
+            if (query !== params.query) onChange?.({ type: "search", query }, { replace: true });
             onChange?.({ type: "kind", kind });
           }}>
             {label}
