@@ -1,0 +1,60 @@
+# 통합 검증 기록
+
+2026-10-19 로컬 프로덕션 모드에서 교재 탐색·장바구니·캐러셀·SEO를 검증했다. 브라우저의 조회 요청이 Supabase 응답을 거쳐 목록과 합계로 표시되는 흐름, 사용자 조건과 보관 상태가 복구되는 흐름을 확인했다.
+
+## 실행 환경과 결과
+
+- macOS arm64, Node.js 22.16.0, npm 10.9.2
+- Next.js 16.4.2, Vitest 5.0.5, Playwright 1.64.1
+- Chromium 156.0.8078.4, 로컬 서버 `http://127.0.0.1:3100`
+- 각 E2E 명령이 `next build` 후 `next start`를 실행하며 기존 개발 서버를 재사용하지 않는다.
+
+| 명령 | 결과 |
+| --- | --- |
+| `npm run lint` | 통과 |
+| `npm run typecheck` | 통과 |
+| `npm run test:unit` | 6개 파일, 80개 통과 |
+| `npm run test:e2e -- --workers=4` | 프로덕션 빌드·실행 성공, 53개 통과 |
+| `npm run test:e2e:live -- --workers=2` | 실제 연결 설정으로 빌드·실행 성공, 5개 통과 |
+
+실패·재시도·건너뛴 테스트는 없다. fnm 환경에서는 각 명령 앞에 `fnm exec --using=22.16.0`을 붙여 실행했다. E2E 두 명령은 같은 빌드 경로와 포트를 사용하므로 순서대로 실행한다.
+
+## 데이터 흐름
+
+교재 목록은 `BookCatalog → useBooks → getBooks → Supabase Data API → BookGrid`로 연결된다. 장바구니는 저장된 상품 ID·수량을 복구한 뒤 `useCartBooks → getBooksByIds → Supabase Data API`에서 현재 가격을 조회한다.
+
+| 확인 지점 | 실제 연결에서 확인한 결과 |
+| --- | --- |
+| 브라우저 렌더링 | 첫 목록 12개 표시, 초기 목록의 처리되지 않은 페이지 오류 0건 |
+| CSR 요청 | 초기 HTML에는 교재명이 없고 브라우저 GET 이후 카드 표시 |
+| 목록 응답 | HTTP 206, `Content-Range: 0-11/18`, 예상 상품 데이터와 일치 |
+| 전체 데이터 | 전체 18개·단품 12개·패스 6개, 각 상품명·가격·이미지 경로 일치 |
+| 검색과 분류 | 두 번째 페이지 6개, 패스 필터·검색·X 초기화, 특수문자 검색 일치 |
+| 범위 초과 | HTTP 416 이후 정확한 개수로 페이지 보정, 빈 검색 결과와 구분 |
+| 장바구니 응답 | 현재 목록에 없는 상품의 ID 조회 HTTP 200, 3개 수량의 합계 247,400원 일치 |
+| 새로고침 복구 | 상품 ID·수량 복원 후 가격 재조회, 합계 247,400원 유지 |
+| 공개 키 권한 | SELECT 성공, INSERT·UPDATE·DELETE는 401/403 및 `42501`로 거부 |
+
+실제 연결 검증은 [catalog.spec.ts](../tests/live/catalog.spec.ts)에 있으며 API 응답을 가로채지 않는다. 쓰기 권한 검사는 불완전한 INSERT와 존재하지 않는 UUID에 대한 UPDATE·DELETE로 수행해 기존 교재를 변경하지 않는다.
+
+## 사용자 흐름과 회귀 검증
+
+| 범위 | 검증한 동작 | 테스트 |
+| --- | --- | --- |
+| 목록·탐색 | 로딩·빈 결과·실패·재시도, 검색·분류·페이지 조합, 뒤로·앞으로·새로고침, 늦은 이전 응답 제외 | [catalog-loading](../tests/e2e/catalog-loading.spec.ts), [catalog-navigation](../tests/e2e/catalog-navigation.spec.ts) |
+| 장바구니 | 담기·토스트·재담기·수량·합계·삭제·비우기, 검색 URL 유지, 가격 갱신 실패·오프라인·누락 상품 | [cart](../tests/e2e/cart.spec.ts) |
+| 보관 | 전용 브라우저 프로필 종료 후 재실행, 손상 데이터·localStorage 접근 실패 | [cart](../tests/e2e/cart.spec.ts) |
+| 캐러셀 | 자동·수동 순환, hover·포커스·명시적 정지, 동작 줄이기, CTA 외 전체 영역 드래그, 전환 중 재조작·연속 클릭 | [carousel](../tests/e2e/carousel.spec.ts), [carousel-swipe](../tests/e2e/carousel-swipe.spec.ts) |
+| 터치·키보드 | 좌우 스와이프와 세로 스크롤 구분, 터치 취소, 버튼 탭, 포커스 순환·Escape·닫은 뒤 포커스 복귀 | [carousel-swipe](../tests/e2e/carousel-swipe.spec.ts), [cart](../tests/e2e/cart.spec.ts) |
+| SEO | JavaScript 실행 전 제목·canonical·공유 메타데이터, CSR 탐색 후 동기화, 페이지 링크 새 탭, robots·sitemap | [seo](../tests/e2e/seo.spec.ts) |
+| 화면·자산 | 한국어 문서·Pretendard, SVG·교재 이미지, 카드·검색창·장바구니 배치와 가로 넘침 | [app-shell](../tests/e2e/app-shell.spec.ts), [store-layout](../tests/e2e/store-layout.spec.ts) |
+
+일반 E2E는 Supabase 응답을 제어한다. 지연·실패·가격 변경·상품 누락은 이 환경에서 재현하고, 실제 DB 연결 검증과 구분한다. Vitest는 [tests/unit](../tests/unit)의 가격 계산·조회 계약·URL 조건·장바구니 규칙·저장 형식·SEO 정책을 검사한다.
+
+## 화면 확인과 검증 한계
+
+1440×1000 데스크톱, 360·390·768px 너비의 터치 화면에서 목록 배치를 검증했다. 장바구니는 360·390px, 캐러셀은 500·905·1200·2841px 너비를 추가로 확인했다. 데스크톱·390px 목록과 390px 장바구니 캡처에서 글꼴·이미지·줄바꿈·버튼 배치를 육안으로 확인했다.
+
+검증은 Chromium과 터치 에뮬레이션 범위다. Safari·Firefox·모바일 실기기, 픽셀 스냅샷 비교, 전체 접근성 표준 적합성은 검증하지 않았다. 화면 캡처와 HTML 보고서는 실행 시 생성되며 저장소에는 포함하지 않는다. 다음 테스트 실행 전 필요한 결과를 별도로 보관해야 한다.
+
+Vercel 배포, 외부 공개 주소 접속, 실제 배포 환경의 canonical·공유 미리보기·Preview 색인은 8단계에서 확인한다. 현재 SEO E2E는 테스트용 공개 주소 설정으로, Preview 색인 정책은 단위 테스트로 확인했다.
