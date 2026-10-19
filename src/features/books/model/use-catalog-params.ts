@@ -22,10 +22,10 @@ export function useCatalogParams() {
     if (new URLSearchParams(window.location.search).toString() === search) writeSearch(normalized, true);
   }, [search, normalized]);
 
-  const changeParams = useCallback((change: CatalogChange) => {
+  const changeParams = useCallback((change: CatalogChange, { replace = false }: { replace?: boolean } = {}) => {
     // 연속 조작에서도 아직 렌더링되지 않은 최신 URL 조건을 유지한다.
     const current = new URLSearchParams(window.location.search);
-    writeSearch(serializeCatalogParams(changeCatalogParams(parseCatalogParams(current), change), current));
+    writeSearch(serializeCatalogParams(changeCatalogParams(parseCatalogParams(current), change), current), replace);
   }, []);
 
   const replacePage = useCallback((page: number) => {

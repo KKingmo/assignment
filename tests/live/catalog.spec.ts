@@ -59,7 +59,7 @@ test("공개 키로 18개 조회가 가능하고 추가·수정·삭제는 거�
   }
 });
 
-test("실제 DB에서 두 번째 페이지·분류·문자 부분 검색이 일치한다", async ({ page }) => {
+test("실제 DB에서 두 번째 페이지·분류·자동 검색과 문자 부분 검색이 일치한다", async ({ page }) => {
   await page.goto("/?page=2");
   await expect(page.getByRole("article")).toHaveCount(6);
   for (const row of allBookRows.slice(12)) await expect(page.getByRole("article", { name: row.title, exact: true })).toBeVisible();
@@ -68,14 +68,13 @@ test("실제 DB에서 두 번째 페이지·분류·문자 부분 검색이 일�
   await expect(page.getByRole("article").getByText("패스", { exact: true })).toHaveCount(6);
   const input = page.getByRole("textbox", { name: "교재 검색" });
   await input.fill("(미적분, 확통)");
-  await input.press("Enter");
   await expect(page.getByRole("article")).toHaveCount(4);
   await page.getByRole("button", { name: "검색어 초기화", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText("전체 6개");
   await page.getByRole("button", { name: "단품", exact: true }).click();
   await expect(page.getByRole("article")).toHaveCount(12);
   await input.fill("hidden kice");
-  await input.press("Enter");
+  await expect(page).toHaveURL(/q=hidden\+kice&kind=single$/);
   await expect(page.getByRole("status")).toHaveText("전체 12개");
   // SQL/정규식 특수문자가 전체 일치나 오류로 확장되지 않는다.
   for (const query of ["%", "_", "*", "\\", ".", "["]) {
