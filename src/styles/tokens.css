@@ -4,20 +4,21 @@
   --black: #000;
   --gray-25: #fafafa;
   --gray-50: #e9eaec;
+  --gray-100: #ced0d4;
   --gray-200: #b2b6bd;
   --gray-300: #979ca5;
-  --gray-600: #666b75;
+  --gray-500: #636873;
   --purple-50: #f4f3fc;
   --purple-500: #7f77dd;
   --purple-600: #6860c5;
-  --orange-500: #c9794e;
+  --orange-500: #fa622f;
 
   /* Semantic colors */
   --color-brand: var(--purple-500);
   --color-brand-hover: var(--purple-600);
   --color-brand-subtle: var(--purple-50);
   --color-text: var(--black);
-  --color-text-secondary: var(--gray-600);
+  --color-text-secondary: var(--gray-500);
   --color-text-muted: var(--gray-300);
   --color-text-faint: var(--gray-200);
   --color-text-inverse: var(--white);
@@ -25,6 +26,7 @@
   --color-surface-subtle: var(--gray-25);
   --color-border: var(--gray-50);
   --color-border-interactive: var(--gray-200);
+  --color-input-border: var(--gray-100);
   --color-price-discount: var(--orange-500);
   --color-focus: var(--purple-600);
 
