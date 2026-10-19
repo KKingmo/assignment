@@ -1,5 +1,26 @@
 import { test, expect, catalogRoute, fulfillCatalogRequest } from "../support/catalog-fixture";
 
+test("결과 개수가 같은 검색을 연속 제출해도 다음 입력을 잃지 않는다", async ({ page }) => {
+  await page.goto("/?kind=single");
+  await expect(page.getByRole("status")).toHaveText("전체 12개");
+  await page.getByRole("textbox", { name: "교재 검색" }).fill("hidden kice");
+  // 같은 브라우저 이벤트 안에서 검색 직후 입력을 이어 지연된 URL 렌더링을 재현한다.
+  await page.evaluate(() => {
+    const input = document.querySelector<HTMLInputElement>("#book-search")!;
+    const form = input.form!;
+    const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    form.requestSubmit();
+    setValue.call(input, "%");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  const input = page.getByRole("textbox", { name: "교재 검색" });
+  await expect(page).toHaveURL(/q=hidden\+kice&kind=single$/);
+  await expect(input).toHaveValue("%");
+  await input.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("전체 0개");
+  expect(new URL(page.url()).searchParams.get("q")).toBe("%");
+});
+
 test("전체 12+6개를 이동하고 검색·분류·X 초기화를 함께 적용한다", async ({ page }) => {
   const requests: URL[] = [];
   page.on("request", (request) => {

@@ -16,13 +16,17 @@ type CatalogToolbarProps = {
 
 export function CatalogToolbar({ params = DEFAULT_CATALOG_PARAMS, search = "", disabled = false, onChange }: CatalogToolbarProps) {
   const form = useRef<HTMLFormElement>(null);
-  const [input, setInput] = useState({ search, draft: params.query });
-  // URL 이동 때만 입력을 동기화하고, 타이핑 중에는 적용 조건을 변경하지 않는다.
-  if (input.search !== search) setInput({ search, draft: params.query });
+  const [input, setInput] = useState({ search, draftSearch: search, draft: params.query });
+  // URL 변경 이후 입력한 초안은 지연된 라우터 렌더링이 덮지 않도록 보존한다.
+  if (input.search !== search) setInput({ search, draftSearch: search, draft: input.draftSearch === search ? input.draft : params.query });
+
+  function setDraft(draft: string) {
+    setInput({ search, draftSearch: new URLSearchParams(window.location.search).toString(), draft });
+  }
 
   function clearSearch() {
-    setInput({ search, draft: "" });
     onChange?.({ type: "search", query: "" });
+    setDraft("");
     const field = form.current?.elements.namedItem("q");
     if (field instanceof HTMLInputElement) field.focus();
   }
@@ -31,8 +35,8 @@ export function CatalogToolbar({ params = DEFAULT_CATALOG_PARAMS, search = "", d
     <form ref={form} role="search" aria-label="교재 검색 조건" className={styles.toolbar} onSubmit={(event) => {
       event.preventDefault();
       const query = normalizeQuery(input.draft);
-      setInput({ search, draft: query });
       onChange?.({ type: "search", query });
+      setDraft(query);
     }}>
       <TextField
         id="book-search"
@@ -44,7 +48,7 @@ export function CatalogToolbar({ params = DEFAULT_CATALOG_PARAMS, search = "", d
         maxLength={MAX_QUERY_LENGTH}
         autoComplete="off"
         enterKeyHint="search"
-        onChange={(event) => setInput({ search, draft: event.target.value })}
+        onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter" && (event.nativeEvent.isComposing || event.keyCode === 229)) event.preventDefault();
         }}
