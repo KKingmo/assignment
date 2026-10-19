@@ -21,9 +21,9 @@ test("첨부 배너와 SVG, Pretendard와 할인율 색상을 적용한다", asy
   await page.evaluate(() => document.fonts.ready);
   await expect(banner(page).locator("img")).toHaveAttribute("src", /banners%2Fbanner.webp/);
   expect(await banner(page).locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-  await expect(banner(page).getByRole("heading")).toHaveCSS("font-size", "72px");
+  await expect(banner(page).getByRole("heading")).toHaveCSS("font-size", "64px");
   await expect(banner(page).getByRole("heading")).toHaveCSS("font-weight", "700");
-  await expect(banner(page).getByText("모두가 푸는 건 이유가 있습니다")).toHaveCSS("font-size", "52px");
+  await expect(banner(page).getByText("모두가 푸는 건 이유가 있습니다")).toHaveCSS("font-size", "48px");
   for (const [label, icon] of [["실전 적중", "crosshair"], ["난이도별 구성", "chart-bar"], ["검증된 결과", "trophy"]]) {
     await expect(banner(page).getByText(label, { exact: true })).toHaveCSS("color", "rgb(250, 98, 47)");
     await expect(banner(page).locator(`span[style*="${icon}.svg"]`)).toHaveCSS("background-color", "rgb(250, 98, 47)");
@@ -43,7 +43,12 @@ test("5초마다 5개 번호를 자동 순환하고 자동 변경은 반복 낭�
   await page.clock.runFor(4_999);
   await expect(counter(page)).toContainText("1 / 5");
   for (const index of [2, 3, 4, 5, 1]) {
-    await page.clock.runFor(index === 2 ? 1 : 5_000);
+    if (index !== 2) {
+      // 전환 종료의 React 렌더를 확정한 뒤 다음 자동 재생 시점까지 진행한다.
+      await page.clock.runFor(750);
+      await expect(banner(page).locator("[inert]")).toHaveCount(0);
+    }
+    await page.clock.runFor(index === 2 ? 1 : 4_250);
     await expect(counter(page)).toContainText(`${index} / 5`);
   }
 });
@@ -63,8 +68,10 @@ test("hover·키보드 포커스 중 멈추고 수동 이동은 양끝을 순환
   await expect(counter(page)).toContainText("2 / 5");
   await previous.press("Enter");
   await expect(counter(page)).toContainText("1 / 5");
+  await page.clock.runFor(750);
   await previous.press("Enter");
   await expect(counter(page)).toContainText("5 / 5");
+  await page.clock.runFor(750);
   await page.getByRole("button", { name: "다음 배너", exact: true }).press("Enter");
   await expect(counter(page)).toContainText("1 / 5");
   await page.getByRole("textbox", { name: "교재 검색" }).focus();
@@ -81,7 +88,8 @@ test("명시적 정지는 포커스를 옮겨도 유지되며 재개할 수 있�
   await expect(counter(page)).toContainText("1 / 5");
   await page.getByRole("button", { name: "배너 자동 재생 시작" }).click();
   await page.getByRole("textbox", { name: "교재 검색" }).focus();
-  await page.mouse.move(0, 0);
+  await page.getByRole("textbox", { name: "교재 검색" }).hover();
+  await expect(counter(page)).toHaveAttribute("aria-live", "off");
   await page.clock.runFor(5_000);
   await expect(counter(page)).toContainText("2 / 5");
 });
@@ -94,9 +102,93 @@ test("동작 줄이기에서는 정지 상태로 시작하고 사용자가 수�
   await expect(counter(page)).toContainText("1 / 5");
   await page.getByRole("button", { name: "다음 배너", exact: true }).click();
   await expect(counter(page)).toContainText("2 / 5");
+  await expect(banner(page).locator("[inert]")).toHaveCount(0);
+  expect(await banner(page).evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
   await page.getByRole("button", { name: "배너 자동 재생 시작" }).click();
   await page.getByRole("textbox", { name: "교재 검색" }).focus();
-  await page.mouse.move(0, 0);
+  await page.getByRole("textbox", { name: "교재 검색" }).hover();
+  await expect(counter(page)).toHaveAttribute("aria-live", "off");
   await page.clock.runFor(5_000);
   await expect(counter(page)).toContainText("3 / 5");
 });
+
+test("다음·이전·양끝 순환 시 화면이 해당 방향으로 이동하며 조작부는 고정된다", async ({ page }) => {
+  await openWithClock(page);
+  const controls = banner(page).getByRole("group", { name: "배너 조작" });
+  const controlBox = await controls.boundingBox();
+
+  for (const [button, index, direction] of [
+    ["다음 배너", 2, 1], ["이전 배너", 1, -1], ["이전 배너", 5, -1], ["다음 배너", 1, 1],
+  ] as const) {
+    await controls.getByRole("button", { name: button, exact: true }).click();
+    const active = banner(page).getByRole("group", { name: `5개 중 ${index}번째` });
+    const outgoing = banner(page).locator("[inert]");
+    await expect(outgoing).toHaveCount(1);
+    await banner(page).evaluate((element) => {
+      for (const animation of element.getAnimations({ subtree: true })) {
+        animation.pause();
+        animation.currentTime = 150;
+      }
+    });
+    expect((await active.boundingBox())!.x * direction).toBeGreaterThan(0);
+    expect((await outgoing.boundingBox())!.x * direction).toBeLessThan(0);
+    await expect(outgoing).toHaveAttribute("aria-hidden", "true");
+    await expect(banner(page).getByRole("link", { name: "히든카이스 시리즈 보기" })).toHaveCount(1);
+    expect(await controls.boundingBox()).toEqual(controlBox);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
+    await banner(page).evaluate((element) => element.getAnimations({ subtree: true }).forEach((animation) => animation.finish()));
+    await expect(outgoing).toHaveCount(0);
+    await expect(controls.getByRole("button", { name: button, exact: true })).toBeFocused();
+    expect((await active.boundingBox())!.x).toBe(0);
+  }
+});
+
+test("전환 중 연속 입력을 막고 애니메이션이 취소되어도 다음 조작을 복구한다", async ({ page }) => {
+  await openWithClock(page);
+  const next = banner(page).getByRole("button", { name: "다음 배너", exact: true });
+  await next.click();
+  await expect(next).toHaveAttribute("aria-disabled", "true");
+  await next.dispatchEvent("click");
+  await expect(counter(page)).toContainText("2 / 5");
+  await banner(page).evaluate((element) => element.getAnimations({ subtree: true }).forEach((animation) => animation.cancel()));
+  await page.clock.runFor(750);
+  await expect(next).toHaveAttribute("aria-disabled", "false");
+  await expect(banner(page).locator("[inert]")).toHaveCount(0);
+  await next.click();
+  await expect(counter(page)).toContainText("3 / 5");
+});
+
+for (const width of [500, 905, 1200, 2841]) {
+  test(`${width}px에서 배경이 배너 끝까지 이어지고 문구·조작부 여백을 유지한다`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 1100 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    const region = banner(page);
+    const bounds = (await region.boundingBox())!;
+    const copy = await region.getByRole("heading").evaluate((heading) => {
+      const { x, y, width, height } = heading.parentElement!.getBoundingClientRect();
+      return { x, y, width, height };
+    });
+    const artwork = await region.locator("img").evaluate((img: HTMLImageElement) => {
+      const { x, y, width, height } = img.parentElement!.getBoundingClientRect();
+      return { x, y, width, height };
+    });
+    const controls = (await region.getByRole("group", { name: "배너 조작" }).boundingBox())!;
+    expect(copy.y - bounds.y).toBeGreaterThanOrEqual(40);
+    expect(artwork.width).toBe(Math.min(width, 1760));
+    if (width < 768) {
+      expect(artwork.y - (copy.y + copy.height)).toBeGreaterThanOrEqual(32);
+      expect(artwork.x).toBe(0);
+      expect(controls.y).toBeGreaterThanOrEqual(artwork.y + artwork.height);
+    } else {
+      expect(artwork.x).toBeLessThanOrEqual(copy.x);
+      expect(artwork.y + artwork.height).toBeCloseTo(bounds.y + bounds.height, 0);
+    }
+    expect(bounds.y + bounds.height - (controls.y + controls.height)).toBeGreaterThanOrEqual(32);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    await expect(region.locator("img")).toBeVisible();
+    await expect.poll(() => region.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    await region.screenshot({ path: testInfo.outputPath(`carousel-v2-${width}.png`) });
+  });
+}

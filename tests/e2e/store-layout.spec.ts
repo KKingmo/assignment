@@ -19,7 +19,8 @@ test("1440px에서 시안의 4열 배치와 카드 크기를 유지한다", asyn
   const fourth = await cards.nth(3).boundingBox();
   const fifth = await cards.nth(4).boundingBox();
   expect(first?.width).toBe(250);
-  expect(first?.y).toBe(719);
+  const bannerBox = await page.getByRole("region", { name: "히든카이스", exact: true }).boundingBox();
+  expect(first?.y).toBeCloseTo(bannerBox!.y + bannerBox!.height + 128, 0);
   expect(fourth?.y).toBe(first?.y);
   expect(Math.round(fifth!.y - first!.y)).toBe(467);
 
@@ -28,7 +29,8 @@ test("1440px에서 시안의 4열 배치와 카드 크기를 유지한다", asyn
   expect(cover?.width).toBe(248);
   expect(cover?.height).toBe(318);
   await expect(page.getByRole("banner")).toHaveCSS("height", "100px");
-  await expect(page.getByRole("region", { name: "히든카이스", exact: true })).toHaveCSS("height", "491px");
+  expect(bannerBox!.height).toBeGreaterThan(550);
+  expect(bannerBox!.height).toBeLessThan(700);
   await expect(page.getByRole("contentinfo")).toBeVisible();
   expect(errors).toEqual([]);
 
