@@ -1,6 +1,6 @@
 # 통합 검증 기록
 
-2026-10-19 로컬 프로덕션 모드에서 교재 탐색·장바구니·캐러셀·SEO를 검증했다. 브라우저의 조회 요청이 Supabase 응답을 거쳐 목록과 합계로 표시되는 흐름, 사용자 조건과 보관 상태가 복구되는 흐름을 확인했다.
+2026-10-19 로컬 프로덕션 모드와 Vercel 공개 배포에서 교재 탐색·장바구니·캐러셀·SEO를 검증했다. 브라우저의 조회 요청이 Supabase 응답을 거쳐 목록과 합계로 표시되는 흐름, 사용자 조건과 보관 상태가 복구되는 흐름을 확인했다.
 
 ## 실행 환경과 결과
 
@@ -18,6 +18,30 @@
 | `npm run test:e2e:live -- --workers=2` | 실제 연결 설정으로 빌드·실행 성공, 5개 통과 |
 
 실패·재시도·건너뛴 테스트는 없다. fnm 환경에서는 각 명령 앞에 `fnm exec --using=22.16.0`을 붙여 실행했다. E2E 두 명령은 같은 빌드 경로와 포트를 사용하므로 순서대로 실행한다.
+
+## Vercel 공개 배포 검증
+
+- 공개 주소: [assignment-seven-livid.vercel.app](https://assignment-seven-livid.vercel.app)
+- GitHub: [KKingmo/assignment](https://github.com/KKingmo/assignment), Production 브랜치 `main`
+- 검증한 앱 커밋: `f1ecaf4453680e2652e21138a5d553ae483d06ad`
+- 검증한 배포: `assignment-g6wcg9d7g-kkingmos-projects.vercel.app` — Production, Ready
+- Production·Preview에 Supabase 공개 설정과 `NEXT_PUBLIC_SITE_URL`을 등록했다. 서버 비밀 키는 사용하지 않는다.
+
+```bash
+PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e -- --workers=4
+PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e:live -- --workers=2
+```
+
+| 대상 | 결과 | 연결 범위 |
+| --- | --- | --- |
+| 공개 배포 E2E | 53개 통과, 15.4초 | Vercel HTML·JS·이미지·폰트·메타데이터, 제어된 Supabase 응답 |
+| 공개 배포 실제 연결 | 5개 통과, 3.6초 | Vercel 앱 → 실제 Supabase → 목록·검색·장바구니 |
+
+로그인 쿠키나 Vercel 보호 우회 없이 실행했고 실패·재시도·건너뛴 테스트는 없었다. `PLAYWRIGHT_BASE_URL`을 지정하면 로컬 서버와 빌드를 실행하지 않으며, SEO 테스트도 해당 origin을 기준으로 검사한다.
+
+실제 응답으로 첫 12개·전체 18개 표시, 분류·검색·초과 페이지 보정, 목록 밖 상품의 ID 조회, 장바구니 합계 247,400원과 새로고침 복원을 확인했다. 공개 키의 SELECT는 성공하고 쓰기 요청은 거부됐다. 초기 HTML의 제목·canonical·OG URL과 robots.txt·sitemap.xml은 공개 도메인과 일치했다.
+
+이후 배포 문서와 외부 URL 검증 기준만 갱신했으며 앱 소스·의존성·정적 자산은 위 검증 커밋과 동일하다.
 
 ## 데이터 흐름
 
@@ -57,4 +81,8 @@
 
 검증은 Chromium과 터치 에뮬레이션 범위다. Safari·Firefox·모바일 실기기, 픽셀 스냅샷 비교, 전체 접근성 표준 적합성은 검증하지 않았다. 화면 캡처와 HTML 보고서는 실행 시 생성되며 저장소에는 포함하지 않는다. 다음 테스트 실행 전 필요한 결과를 별도로 보관해야 한다.
 
-Vercel 배포, 외부 공개 주소 접속, 실제 배포 환경의 canonical·공유 미리보기·Preview 색인은 8단계에서 확인한다. 현재 SEO E2E는 테스트용 공개 주소 설정으로, Preview 색인 정책은 단위 테스트로 확인했다.
+공개 Production의 HTML 메타데이터와 이미지 응답은 검증했다. 외부 메신저가 생성하는 실제 공유 카드와 검색 엔진 색인은 검증하지 않았다. Preview 색인 정책은 단위 테스트로 확인했으며 별도의 Preview 배포 검증은 수행하지 않았다.
+
+## 의존성 점검
+
+2026-10-19 `npm audit --omit=dev` 결과는 취약점 0건이다. 전체 의존성에는 ESLint의 `braces` 의존 경로에서 high 경고 5건이 남아 있다. 당시 수정 버전이 배포되지 않아 자동 수정이 제안하는 Next.js ESLint 설정의 메이저 다운그레이드는 적용하지 않았다. ESLint 9와 TypeScript 6은 현재 Next.js ESLint 플러그인의 호환 범위에 맞춰 고정했다. 수정 버전과 플러그인 지원 범위를 확인한 뒤 함께 갱신한다.

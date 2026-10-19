@@ -1,6 +1,8 @@
 import { test, expect, catalogRoute, fulfillCatalogRequest } from "../support/catalog-fixture";
 
-const origin = "https://store.example.test";
+const origin = process.env.PLAYWRIGHT_BASE_URL
+  ? new URL(process.env.PLAYWRIGHT_BASE_URL).origin
+  : "https://store.example.test";
 
 test("JavaScript 실행 전에도 페이지별 제목·canonical·공유 미리보기를 제공한다", async ({ browser, baseURL }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
