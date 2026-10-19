@@ -36,6 +36,8 @@ export default defineConfig({
         reuseExistingServer: false,
         timeout: 120_000,
         env: live ? undefined : {
+          NEXT_PUBLIC_SITE_URL: "https://store.example.test",
+          VERCEL_ENV: "production",
           NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "public-e2e-test-key",
         },

@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
+import type { SiteSeo } from "@/lib/seo/site";
+import { useCatalogMetadata } from "../model/use-catalog-metadata";
 import { useCatalogParams } from "../model/use-catalog-params";
 import { lastCatalogPage } from "../model/catalog-params";
 import { useBooks } from "../model/use-books";
@@ -11,8 +13,9 @@ import { CatalogPagination } from "./catalog-pagination";
 import { CatalogToolbar } from "./catalog-toolbar";
 import styles from "./catalog.module.css";
 
-export function BookCatalog() {
+export function BookCatalog({ site }: { site: SiteSeo }) {
   const { params, search, changeParams, replacePage } = useCatalogParams();
+  useCatalogMetadata(params, site);
   const { data, isPending, isError, isFetching, refetch } = useBooks(params);
   const lastPage = data ? lastCatalogPage(data.totalCount) : undefined;
   const correctingPage = lastPage !== undefined && params.page > lastPage;
@@ -52,7 +55,7 @@ export function BookCatalog() {
           ) : (
             <>
               <BookGrid books={data.items} />
-              <CatalogPagination totalCount={data.totalCount} page={params.page} onPageChange={changePage} />
+              <CatalogPagination totalCount={data.totalCount} params={params} search={search} onPageChange={changePage} />
             </>
           )}
         </>

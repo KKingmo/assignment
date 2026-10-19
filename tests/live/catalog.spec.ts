@@ -108,7 +108,7 @@ test("실제 ID 조회로 목록 밖 교재의 장바구니 합계와 새로고�
   await page.goto("/?page=2");
   const addLast = page.getByRole("article", { name: last.title, exact: true }).getByRole("button", { name: /장바구니에 담기$/ });
   await addLast.click(); await addLast.click();
-  await page.getByRole("button", { name: "이전 페이지" }).click();
+  await page.getByRole("link", { name: "이전 페이지" }).click();
   await page.getByRole("article", { name: pass.title, exact: true }).getByRole("button", { name: /장바구니에 담기$/ }).click();
   const response = page.waitForResponse((result) => result.url().startsWith(`${url}/rest/v1/books?`) && new URL(result.url()).searchParams.has("id"));
   await cart.click();

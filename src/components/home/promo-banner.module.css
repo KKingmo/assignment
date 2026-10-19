@@ -1,268 +1,267 @@
 .banner {
-  --promo-accent: #d98657;
+  --promo-accent: var(--orange-500);
   position: relative;
   overflow: hidden;
   height: 491px;
   color: var(--color-text-inverse);
-  background: radial-gradient(ellipse at 73% 90%, #a25c35 0, transparent 26%),
-  radial-gradient(ellipse at 77% 24%, #4b4b53 0, #1b1b20 30%, #0a0a0b 67%);
+  background: #101010;
 }
 
+.artwork {
+  position: absolute;
+  inset: 0;
+}
+.artwork img {
+  object-fit: cover;
+  object-position: center;
+}
 .inner {
   position: relative;
   height: 100%;
 }
-
 .copy {
   position: relative;
-  z-index: 2;
-  padding: 76px 10px 0;
+  width: 660px;
+  padding-top: var(--space-6);
 }
 
 .eyebrow {
-  margin-bottom: var(--space-4);
+  margin-bottom: 14px;
   color: var(--promo-accent);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
   letter-spacing: 3px;
+  line-height: 1.5;
 }
-
 .eyebrow span {
   margin-left: var(--space-2);
 }
-
 .copy h2 {
-  font-size: 56px;
+  font-size: 72px;
   font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-tight);
+  line-height: 1.2;
+  letter-spacing: -2px;
 }
-
 .headline {
-  margin-top: var(--space-1);
-  font-size: 40px;
+  margin-top: 2px;
+  font-size: 52px;
   font-weight: 300;
-  line-height: 1.4;
+  line-height: 1.25;
   letter-spacing: -1.5px;
 }
-
 .description {
-  margin-top: var(--space-1);
+  margin-top: 10px;
   color: #b2afb2;
-  font-size: var(--font-size-lg);
+  font-size: 22px;
+  line-height: 1.5;
 }
 
 .highlights {
   display: flex;
-  margin: var(--space-9) 0 var(--space-8);
+  margin: var(--space-9) 0 var(--space-10);
   padding: 0;
   list-style: none;
 }
-
 .highlights li {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
-
 .highlights li + li {
-  border-left: 1px solid #4b3a30;
-  margin-left: var(--space-5);
-  padding-left: var(--space-5);
+  border-left: 1px solid #636363;
+  margin-left: 22px;
+  padding-left: 22px;
 }
-
 .highlightMark {
+  display: flex;
   color: var(--promo-accent);
-  font-size: 32px;
-  line-height: 1;
 }
-
+.highlightMark > span {
+  width: 38px;
+  height: 38px;
+}
 .highlights strong {
   display: block;
   color: var(--promo-accent);
-  font-size: var(--font-size-xs);
+  font-size: 16px;
   font-weight: var(--font-weight-semibold);
+  line-height: 1.5;
 }
-
 .highlights div > span {
   display: block;
-  font-size: 11px;
+  margin-top: 4px;
+  color: #e3e3e3;
+  font-size: 13px;
+  white-space: nowrap;
+  line-height: 1.5;
 }
 
 .cta {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-8);
-  min-height: var(--touch-target);
-  padding: var(--space-2) var(--space-6);
-  border: 1px solid #70452e;
-  border-radius: var(--radius-sm);
+  width: 264px;
+  min-height: 52px;
+  padding: 12px 30px;
+  border: 1px solid var(--promo-accent);
+  border-radius: var(--radius-md);
   color: var(--promo-accent);
-  font-size: var(--font-size-xs);
-  transition: background var(--duration-fast), border-color var(--duration-fast);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  transition: background var(--duration-fast);
 }
-
 .cta:hover {
-  background: #302016;
-  border-color: var(--promo-accent);
+  background: color-mix(in srgb, var(--promo-accent) 12%, transparent);
+}
+.banner :focus-visible {
+  outline-color: var(--promo-accent);
 }
 
-.artwork {
+.controls {
   position: absolute;
-  right: -30px;
-  bottom: 0;
-  width: 560px;
-  height: 440px;
-}
-
-.book {
-  position: absolute;
-  width: 226px;
-  height: 330px;
-  overflow: hidden;
-  background: #111;
-  border-right: 5px solid #b1b0af;
-  box-shadow: -14px 0 28px rgb(0 0 0 / 35%);
-  transform: perspective(900px) rotateY(-12deg) rotateZ(-1deg);
-}
-
-.book img {
-  position: absolute;
-  width: 154%;
-  max-width: none;
-  height: auto;
-  left: -27%;
-  top: -20.5%;
-}
-
-.front {
-  left: 30px;
-  top: 18px;
-  z-index: 3;
-  filter: hue-rotate(-60deg);
-}
-
-.middle {
-  left: 190px;
-  top: 38px;
-  z-index: 2;
-  width: 206px;
-  height: 308px;
-  filter: hue-rotate(125deg) brightness(0.7);
-}
-
-.back {
-  left: 335px;
-  top: 58px;
-  z-index: 1;
-  width: 185px;
-  height: 286px;
-  filter: hue-rotate(200deg) brightness(0.6);
-}
-
-.podium {
-  position: absolute;
-  z-index: 4;
-  bottom: -30px;
-  left: -100px;
-  width: 720px;
-  height: 115px;
-  background: linear-gradient(150deg, #292a31, #08090b 65%);
-  border-top: 1px solid #99939a;
-  transform: rotate(-2deg);
-  box-shadow: 0 -12px 40px rgb(0 0 0 / 20%);
-}
-
-.counter {
-  position: absolute;
-  z-index: 5;
-  right: var(--space-10);
-  bottom: var(--space-8);
-  padding: var(--space-1) var(--space-5);
+  right: 0;
+  bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
   border-radius: var(--radius-full);
-  background: rgb(0 0 0 / 45%);
+  background: rgb(0 0 0 / 72%);
+}
+.controls button {
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-full);
+}
+.controls button:hover:not(:disabled) {
+  color: var(--promo-accent);
+  border-color: transparent;
+  background: rgb(255 255 255 / 12%);
+}
+.counter {
+  min-width: 46px;
+  color: var(--gray-200);
   font-size: var(--font-size-sm);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.counter strong {
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-semibold);
 }
 
 @media (max-width: 1199px) {
+  .copy {
+    width: 560px;
+    padding-top: 40px;
+  }
   .copy h2 {
-    font-size: 44px;
+    font-size: 52px;
   }
-
   .headline {
-    font-size: 30px;
+    font-size: 36px;
   }
-
-  .artwork {
-    right: -80px;
-    transform: scale(0.85);
-    transform-origin: bottom right;
-  }
-
   .description {
-    font-size: var(--font-size-md);
+    font-size: 17px;
   }
-
-  .highlights {
-    gap: var(--space-4);
+  .highlights li {
+    gap: 8px;
   }
-
   .highlights li + li {
-    padding-left: 0;
-    margin-left: 0;
-    border: 0;
+    margin-left: 14px;
+    padding-left: 14px;
   }
-
-  .highlightMark {
-    display: none;
+  .highlightMark > span {
+    width: 30px;
+    height: 30px;
+  }
+  .highlights strong {
+    font-size: 14px;
+  }
+  .highlights div > span {
+    font-size: 11px;
+  }
+  .banner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(16 16 16 / 90%), transparent);
+  }
+  .inner {
+    z-index: 1;
   }
 }
 
 @media (max-width: 767px) {
   .banner {
-    height: 460px;
+    height: 620px;
   }
-
-  .copy {
-    padding: var(--space-8) 0 0;
+  .banner::after {
+    background: linear-gradient(#101010 48%, rgb(16 16 16 / 20%) 70%, transparent);
   }
-
-  .eyebrow {
-    font-size: var(--font-size-xs);
-    margin-bottom: var(--space-3);
-    letter-spacing: 2px;
-  }
-
-  .copy h2 {
-    font-size: 32px;
-  }
-
-  .headline {
-    font-size: 21px;
-    letter-spacing: -0.5px;
-  }
-
-  .description {
-    font-size: var(--font-size-xs);
-    max-width: 300px;
-  }
-
-  .highlights {
-    display: none;
-  }
-
-  .cta {
-    margin-top: var(--space-5);
-    padding-inline: var(--space-4);
-  }
-
   .artwork {
-    right: -40px;
-    transform: scale(0.5);
+    height: 300px;
+    top: auto;
   }
-
-  .counter {
-    bottom: var(--space-4);
-    right: var(--space-4);
-    font-size: var(--font-size-xs);
+  .artwork img {
+    object-position: right bottom;
+  }
+  .copy {
+    width: 100%;
+    padding-top: 28px;
+  }
+  .eyebrow {
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+  .copy h2 {
+    font-size: 40px;
+    letter-spacing: -1px;
+  }
+  .headline {
+    margin-top: 8px;
+    font-size: clamp(20px, 5.6vw, 30px);
+    letter-spacing: -0.8px;
+  }
+  .description {
+    max-width: 300px;
+    margin-top: 12px;
+    font-size: 14px;
+  }
+  .highlights {
+    justify-content: space-between;
+    margin: 24px 0;
+    gap: 8px;
+  }
+  .highlights li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .highlights li + li {
+    margin: 0;
+    padding-left: 12px;
+  }
+  .highlightMark > span {
+    width: 26px;
+    height: 26px;
+  }
+  .highlights strong {
+    font-size: 13px;
+  }
+  .highlights div > span {
+    max-width: 88px;
+    font-size: 11px;
+    white-space: normal;
+    word-break: keep-all;
+  }
+  .cta {
+    width: 236px;
+    min-height: 48px;
+    padding: 10px 24px;
+    font-size: 14px;
+  }
+  .controls {
+    bottom: 16px;
+    right: 0;
   }
 }

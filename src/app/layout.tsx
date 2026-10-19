@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Providers } from "./providers";
+import { getSiteSeo } from "@/lib/seo/site";
 import "./globals.css";
 
 const pretendard = localFont({
@@ -11,6 +12,7 @@ const pretendard = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteSeo().origin),
   title: "Hidden Kice | 교재 스토어",
   description: "Hidden Kice 교재 스토어",
 };

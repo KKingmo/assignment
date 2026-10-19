@@ -70,6 +70,7 @@ for (const width of [360, 390, 768]) {
     try {
       const page = await context.newPage();
       await mockBooks(page);
+      await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto("/");
       await page.evaluate(() => document.fonts.ready);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
@@ -87,6 +88,13 @@ for (const width of [360, 390, 768]) {
       expect((await add.boundingBox())?.height).toBe(44);
       await expect(page.getByRole("textbox", { name: "교재 검색" })).toBeVisible();
       await expect(page.getByRole("button", { name: "히든카이스 소개", exact: true })).toBeInViewport();
+      const banner = page.getByRole("region", { name: "히든카이스", exact: true });
+      for (const title of ["실전 적중", "난이도별 구성", "검증된 결과"]) await expect(banner.getByText(title, { exact: true })).toBeVisible();
+      const nextBanner = banner.getByRole("button", { name: "다음 배너", exact: true });
+      expect((await nextBanner.boundingBox())?.width).toBe(44);
+      expect((await nextBanner.boundingBox())?.height).toBe(44);
+      await nextBanner.tap();
+      await expect(banner.locator("[aria-live]")).toContainText("2 / 5");
       await page.screenshot({ path: testInfo.outputPath(`store-${width}.png`), fullPage: true });
     } finally {
       await context.close();

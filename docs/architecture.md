@@ -2,7 +2,7 @@
 
 Next.js 기반 교재 스토어의 모듈 책임, 데이터 흐름, 상태 관리와 검증 전략을 정의한다. 교재 조회는 Supabase를 사용하는 CSR로 구성하고, 검색 조건·서버 데이터·장바구니 상태를 분리한다.
 
-구현 순서와 진행 상태는 [구현 계획](implementation-plan.md), 실제 토큰과 공통 UI의 적용 기준은 [디자인 시스템](design-system.md)에서 관리한다. 아래 구조와 동작은 구현 목표를 기준으로 기술한다. 교재의 Supabase CSR 조회, 검색·분류·페이지 이동과 URL 복원, 장바구니 담기·수량 관리·브라우저 보관을 구현했다. 캐러셀·SEO 확장은 후속 단계에 해당한다.
+구현 순서와 진행 상태는 [구현 계획](implementation-plan.md), 실제 토큰과 공통 UI의 적용 기준은 [디자인 시스템](design-system.md)에서 관리한다. 교재의 Supabase CSR 조회, 검색·분류·페이지 이동과 URL 복원, 장바구니 담기·수량 관리·브라우저 보관, 캐러셀과 SEO를 구현했다. 최종 배포 환경의 연결과 검증은 배포 단계에서 수행한다.
 
 ## 기능 범위
 
@@ -32,6 +32,8 @@ src/
 │  │  ├─ model/
 │  │  │  ├─ book.ts              화면용 데이터 타입
 │  │  │  ├─ catalog-params.ts    조회 조건 파싱과 정규화
+│  │  │  ├─ catalog-seo.ts       URL별 메타데이터 규칙
+│  │  │  ├─ use-catalog-metadata.ts Native History의 메타데이터 동기화
 │  │  │  ├─ use-catalog-params.ts URL 읽기와 변경
 │  │  │  └─ use-books.ts         요청과 캐시 정책
 │  │  └─ ui/                     목록, 카드, 검색·필터, 페이지 이동
@@ -45,8 +47,12 @@ src/
 │  ├─ layout/                    헤더와 푸터
 │  ├─ ui/                        Button, IconButton, TextField, Badge
 │  └─ home/                      배너 캐러셀
-└─ lib/supabase/                 클라이언트와 DB 타입
-public/images/books/            단품·패스 이미지
+└─ lib/
+   ├─ supabase/                 클라이언트와 DB 타입
+   └─ seo/                      기준 주소와 배포 환경의 색인 정책
+public/images/
+├─ books/                       단품·패스 이미지
+└─ banners/                     캐러셀·공유 미리보기 이미지
 supabase/
 ├─ migrations/                  테이블, 제약, 권한 정책
 ├─ seed.sql                     상품 초기 데이터
@@ -254,7 +260,7 @@ SVG는 viewBox를 보존하고 크기 토큰과 currentColor로 표시한다. �
 
 ## 캐러셀과 SEO
 
-배너는 동일 이미지를 사용하는 5개 슬라이드로 구성하며 실제 인덱스를 표시한다. 자동 재생 간격은 5초를 기본값으로 두고 이전·다음 이동과 정지·재개를 제공한다. hover·키보드 포커스 진입 시 일시 정지하며 동작 줄이기 설정에서는 자동 재생을 시작하지 않는다.
+배너는 동일 이미지를 사용하는 5개 슬라이드로 구성하며 실제 인덱스를 표시한다. 자동 재생 간격은 5초를 기본값으로 두고 이전·다음 이동과 정지·재개를 제공한다. hover·키보드 포커스 진입·숨겨진 브라우저 탭에서는 일시 정지하며 동작 줄이기 설정에서는 자동 재생을 시작하지 않는다. 명시적 정지는 hover·포커스가 해제되어도 유지한다. 타이머는 재생 가능 여부와 현재 인덱스에 따라 등록·해제하며 다시 시작할 때 5초 간격을 새로 센다. 자동 변경은 스크린 리더의 반복 낭독을 끈다.
 
 | SEO 항목 | 정책 |
 | --- | --- |
@@ -265,6 +271,10 @@ SVG는 viewBox를 보존하고 크기 토큰과 currentColor로 표시한다. �
 | robots·sitemap | 구현된 공개 경로만 포함, Preview 배포는 색인 제외 |
 | 문서 구조 | lang=ko, 의미 있는 제목·영역 구조, 이미지 대체 텍스트 |
 | 페이지 이동 | 실제 href를 가진 링크로 구현 |
+
+`features/books/model/catalog-seo.ts`는 URL 조건을 제목·설명·canonical·robots 규칙으로 변환한다. `app/page.tsx`의 `generateMetadata`는 서버에서 같은 규칙을 사용하고, `useCatalogMetadata`는 Native History 변경에 따라 문서의 해당 태그만 갱신한다. 새로고침 없이 검색하거나 뒤로 가기를 해도 URL·목록·메타데이터가 일치한다. `lib/seo/site.ts`는 사이트 기준 주소와 배포 환경의 색인 여부를 결정한다.
+
+`NEXT_PUBLIC_SITE_URL`이 공개 주소인 Production만 기본 목록을 색인 대상으로 둔다. 개발·로컬 주소·Vercel Preview는 `noindex, follow`를 사용하고 sitemap을 비운다. 공개 sitemap에는 구현된 루트 경로만 포함하며 페이지 번호를 추측해 추가하지 않는다. 페이지 링크는 href로 탐색 경로를 제공하고 일반 클릭에만 CSR 이동을 적용한다.
 
 메타데이터를 위해 서버에서 상품을 중복 조회하지 않는다. noindex를 읽을 수 있도록 해당 탐색 URL의 크롤링을 robots.txt로 차단하지 않는다. 상품 상세·주문 기능에 대한 URL과 구조화 데이터는 포함하지 않는다.
 

@@ -80,7 +80,7 @@ test("페이지 밖 상품도 조회하고 새로고침 후 ID·수량만으로 
   await page.goto("/?page=2");
   const last = allBookRows.at(-1)!;
   await add(page, last.title);
-  await page.getByRole("button", { name: "이전 페이지" }).click();
+  await page.getByRole("link", { name: "이전 페이지" }).click();
   await add(page, single.title);
   await page.reload();
   await expect(cartTrigger(page)).toHaveAccessibleName("장바구니, 총 2개");

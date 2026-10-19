@@ -28,14 +28,14 @@ test("전체 12+6개를 이동하고 검색·분류·X 초기화를 함께 적�
   });
   await page.goto("/");
   await expect(page.getByRole("article")).toHaveCount(12);
-  await expect(page.getByRole("button", { name: "이전 페이지" })).toBeDisabled();
-  await page.getByRole("button", { name: "다음 페이지" }).click();
+  await expect(page.getByRole("link", { name: "이전 페이지" })).toBeDisabled();
+  await page.getByRole("link", { name: "다음 페이지" }).click();
   await expect(page).toHaveURL(/\?page=2$/);
   await expect(page.getByRole("article")).toHaveCount(6);
   await expect(page.getByRole("region", { name: "교재 스토어", exact: true })).toBeFocused();
   await expect(page.getByRole("textbox", { name: "교재 검색" })).toBeInViewport();
-  await expect(page.getByRole("button", { name: "2페이지", exact: true })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("button", { name: "다음 페이지" })).toBeDisabled();
+  await expect(page.getByRole("link", { name: "2페이지", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link", { name: "다음 페이지" })).toBeDisabled();
 
   await page.getByRole("button", { name: "패스", exact: true }).click();
   await expect(page).toHaveURL(/\?kind=pass$/);
@@ -97,9 +97,9 @@ test("모바일에서 빈 검색 조건을 초기화하고 다시 탐색할 수 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("textbox", { name: "교재 검색" })).toHaveValue("");
   await expect(page.getByRole("article")).toHaveCount(12);
-  await page.getByRole("button", { name: "다음 페이지" }).click();
+  await page.getByRole("link", { name: "다음 페이지" }).click();
   await expect(page.getByRole("article")).toHaveCount(6);
-  await page.getByRole("button", { name: "이전 페이지" }).click();
+  await page.getByRole("link", { name: "이전 페이지" }).click();
   await expect(page.getByRole("article")).toHaveCount(12);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });
@@ -108,14 +108,14 @@ test("잘못된 URL은 정규화하고 초과 페이지는 히스토리를 추�
   await page.goto("/?page=-1&kind=unknown&q=++");
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("article")).toHaveCount(12);
-  await page.getByRole("button", { name: "2페이지", exact: true }).click();
+  await page.getByRole("link", { name: "2페이지", exact: true }).click();
   await expect(page.getByRole("article")).toHaveCount(6);
   await page.goto("/?kind=pass&page=99");
   await expect(page).toHaveURL(/\?kind=pass$/);
   await expect(page.getByRole("article")).toHaveCount(6);
   await page.goBack();
   await expect(page).toHaveURL(/\?page=2$/);
-  await expect(page.getByRole("button", { name: "2페이지", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link", { name: "2페이지", exact: true })).toHaveAttribute("aria-current", "page");
   await page.goto("/?page=99");
   await expect(page).toHaveURL(/\?page=2$/);
   await expect(page.getByRole("article")).toHaveCount(6);

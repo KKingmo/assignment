@@ -32,6 +32,13 @@ test("한국어 문서와 로컬 Pretendard 폰트를 표시한다", async ({ pa
 
 test("교재 이미지와 아이콘을 공개 경로에서 제공한다", async ({ request }) => {
   const assets = [
+    ["/images/banners/banner.webp", "image/webp"],
+    ["/icons/crosshair.svg", "image/svg+xml"],
+    ["/icons/chart-bar.svg", "image/svg+xml"],
+    ["/icons/trophy.svg", "image/svg+xml"],
+    ["/icons/arrow-right.svg", "image/svg+xml"],
+    ["/icons/play.svg", "image/svg+xml"],
+    ["/icons/pause.svg", "image/svg+xml"],
     ["/images/books/hidden-kice-book-single.webp", "image/webp"],
     ["/images/books/hidden-kice-book-pass.webp", "image/webp"],
     ["/icons/shopping-cart.svg", "image/svg+xml"],

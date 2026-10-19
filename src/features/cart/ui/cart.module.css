@@ -272,6 +272,9 @@
   .panelHeader, .panelFooter {
     padding: var(--space-5);
   }
+  .panelFooter {
+    padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  }
   .panelBody {
     padding-inline: var(--space-5);
   }

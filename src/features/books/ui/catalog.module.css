@@ -184,11 +184,22 @@
   margin-top: var(--pagination-gap);
 }
 
-.pagination button {
+.pageLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: var(--control-size);
   height: var(--control-size);
-  padding: 0;
+  border: 1px solid var(--color-brand);
+  border-radius: var(--radius-sm);
+  color: var(--color-brand);
+  font-weight: var(--font-weight-medium);
 }
+
+.pageLink[aria-disabled="true"] { opacity: 0.4; }
+.pageLink[href]:hover { background: var(--color-brand-subtle); }
+.pageLink[aria-current="page"] { color: var(--color-text-inverse); background: var(--color-brand); }
+.pageLink[aria-current="page"]:hover { background: var(--color-brand-hover); }
 
 @media (hover: none) {
   .addToCart {
@@ -247,7 +258,7 @@
     font-size: var(--font-size-xs);
   }
 
-  .pagination button {
+  .pageLink {
     width: var(--touch-target);
     height: var(--touch-target);
   }

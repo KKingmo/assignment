@@ -8,7 +8,13 @@ export type IconName =
   | "search"
   | "close"
   | "caret-left"
-  | "caret-right";
+  | "caret-right"
+  | "crosshair"
+  | "chart-bar"
+  | "trophy"
+  | "arrow-right"
+  | "play"
+  | "pause";
 
 export function Icon({ name, size = "md" }: { name: IconName; size?: "sm" | "md" }) {
   return (
