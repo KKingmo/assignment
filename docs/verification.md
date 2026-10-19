@@ -14,12 +14,12 @@
 | `npm run lint` | 통과 |
 | `npm run typecheck` | 통과 |
 | `npm run test:unit` | 6개 파일, 80개 통과 |
-| `npm run test:e2e -- --workers=4` | 프로덕션 빌드·실행 성공, 53개 통과 |
+| `npm run test:e2e -- --workers=4` | 프로덕션 빌드·실행 성공, 자동 검색 포함 60개 통과 |
 | `npm run test:e2e:live -- --workers=2` | 실제 연결 설정으로 빌드·실행 성공, 5개 통과 |
 
-실패·재시도·건너뛴 테스트는 없다. fnm 환경에서는 각 명령 앞에 `fnm exec --using=22.16.0`을 붙여 실행했다. E2E 두 명령은 같은 빌드 경로와 포트를 사용하므로 순서대로 실행한다.
+위 표는 최종 실행 결과이며 실패·재시도·건너뛴 테스트는 없다. fnm 환경에서는 각 명령 앞에 `fnm exec --using=22.16.0`을 붙여 실행했다. E2E 두 명령은 같은 빌드 경로와 포트를 사용하므로 순서대로 실행한다.
 
-## Vercel 공개 배포 검증
+## 최초 Vercel 공개 배포 검증
 
 - 공개 주소: [assignment-seven-livid.vercel.app](https://assignment-seven-livid.vercel.app)
 - GitHub: [KKingmo/assignment](https://github.com/KKingmo/assignment), Production 브랜치 `main`
@@ -41,7 +41,30 @@ PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e:l
 
 실제 응답으로 첫 12개·전체 18개 표시, 분류·검색·초과 페이지 보정, 목록 밖 상품의 ID 조회, 장바구니 합계 247,400원과 새로고침 복원을 확인했다. 공개 키의 SELECT는 성공하고 쓰기 요청은 거부됐다. 초기 HTML의 제목·canonical·OG URL과 robots.txt·sitemap.xml은 공개 도메인과 일치했다.
 
-이후 배포 문서와 외부 URL 검증 기준만 갱신했으며 앱 소스·의존성·정적 자산은 위 검증 커밋과 동일하다.
+최초 배포 이후 `9bdc69c`에서 문서와 외부 URL 검증 기준을 갱신했다. 다음 자동 검색 변경은 별도로 검증했다.
+
+## 자동 검색 변경 검증
+
+`e215a15`에서 300ms 디바운스 자동 검색을 추가했다. [catalog-debounce.spec.ts](../tests/e2e/catalog-debounce.spec.ts)의 7개 시나리오를 포함해 로컬 전체 E2E 60개가 통과했다. Vitest 80개, 린트·타입 검사, 실제 Supabase 연결 5개도 통과했다.
+
+| 시나리오 | 확인한 결과 |
+| --- | --- |
+| 연속 입력 | 마지막 입력 후 299ms에는 요청하지 않고 300ms에 최종 검색어 한 번 조회 |
+| 명시적 실행 | Enter·검색 버튼으로 즉시 조회하고 예약된 중복 검색 취소 |
+| 초기화 | X는 즉시 검색어를 비우고 필터 유지, 예약된 이전 검색이 재실행되지 않음 |
+| 한글 조합 | 조합 중과 조합 확정 Enter에는 조회하지 않고 조합 종료 후 300ms에 조회 |
+| URL 이력 | 자동 검색은 history 길이를 늘리지 않으며 뒤로·앞으로·새로고침에서 입력과 결과 복원 |
+| 분류 전환 | 대기 중 분류를 바꾸면 최신 입력도 반영하며 1페이지로 이동 |
+| 입력 보존 | 자동 조회 중 입력의 공백 유지, 직접 지운 빈 검색어도 반영 |
+
+Playwright Clock으로 디바운스 경계를 제어하고 API 요청 횟수와 결과를 함께 검사했다. 네트워크 응답 후 Query 알림 타이머를 별도로 진행하며 새로고침 전에는 시계를 재개한다. 실제 연결 테스트에서도 Enter 없이 한글·영문 검색을 실행해 결과를 확인했다. IME 검증은 composition 이벤트 에뮬레이션이며 OS 입력기 실기기 테스트는 아니다.
+
+Production 배포 `assignment-jihk3ees5-kkingmos-projects.vercel.app`이 Ready인 것을 확인한 뒤 공개 주소에서 다음 명령을 실행했다. 자동 검색 7개는 3.8초, 실제 Supabase 연결 5개는 4.5초에 통과했다. 두 최종 실행 모두 실패·재시도·건너뛴 테스트가 없었다.
+
+```bash
+PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e -- tests/e2e/catalog-debounce.spec.ts --workers=4
+PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e:live -- --workers=2
+```
 
 ## 데이터 흐름
 
