@@ -80,6 +80,19 @@ PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 npm run test:e2e -- tests/e2e/catalog-
 
 2026-10-19 배포 전에는 로고 자간 변경까지 포함한 전체 작업 트리에서 린트·타입 검사, Vitest 80개와 프로덕션 빌드 기반 E2E 60개를 다시 실행해 모두 통과했다. E2E는 13.1초에 완료됐으며 테스트 실패·재시도·건너뛴 항목은 없었다.
 
+## 한글 자동 검색 수정의 공개 배포 검증
+
+앱 커밋 `12bbc51148655e8c04f0f6cef3137f48f54f8e6b`의 Production 배포 `assignment-1hrjiv8rl-kkingmos-projects.vercel.app`이 Ready이며 공개 도메인에 연결된 것을 확인했다. 빌드는 11초에 완료됐다.
+
+```bash
+PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e -- --workers=4
+PLAYWRIGHT_BASE_URL=https://assignment-seven-livid.vercel.app npm run test:e2e:live -- --workers=2
+```
+
+첫 전체 실행은 59개 통과, 캐러셀 드래그 1개 실패였다. Trace에서 선택 번호가 바뀐 직후 슬라이드 정렬 전에 다음 드래그가 시작된 것을 확인했다. 독립된 드래그 사이에 활성 슬라이드가 제자리에 정렬됐는지 검사하도록 테스트를 보완했다. 전환 도중 다시 잡는 동작은 별도의 시나리오로 계속 검증한다.
+
+앱 코드를 변경하지 않고 보완된 테스트로 다시 실행해 E2E 60개가 14.7초에 통과했다. 실제 Supabase 연결 테스트 5개는 4.4초에 통과했다. 별도로 응답을 가로채지 않고 `기하`를 입력해 HTTP 200·결과 2개·포커스 유지·한글 조합 유지를 확인했으며, 해당 흐름의 처리되지 않은 페이지 오류는 0건이었다.
+
 ## 데이터 흐름
 
 교재 목록은 `BookCatalog → useBooks → getBooks → Supabase Data API → BookGrid`로 연결된다. 장바구니는 저장된 상품 ID·수량을 복구한 뒤 `useCartBooks → getBooksByIds → Supabase Data API`에서 현재 가격을 조회한다.

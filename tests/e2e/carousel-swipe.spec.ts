@@ -19,12 +19,15 @@ async function touchDrag(cdp: CDPSession, from: [number, number], to: [number, n
 test("마우스 좌우 드래그로 순환하고 짧은 이동·세로 이동·링크 클릭을 구분한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
+  await expect(page.getByRole("article")).toHaveCount(12);
   const y = (await banner(page).boundingBox())!.y + 200;
   async function drag(dx: number, dy = 0) {
     await page.mouse.move(700, y);
     await page.mouse.down();
     await page.mouse.move(700 + dx, y + dy, { steps: 8 });
     await page.mouse.up();
+    // 번호는 정렬보다 먼저 바뀐다. 독립된 드래그는 화면 정렬 후 시작한다.
+    await expect.poll(async () => Math.abs((await activeSlide(page).boundingBox())!.x)).toBeLessThan(1);
   }
   await drag(-160);
   await expect(counter(page)).toContainText("2 / 5");
@@ -33,6 +36,7 @@ test("마우스 좌우 드래그로 순환하고 짧은 이동·세로 이동·�
   await drag(160);
   await expect(counter(page)).toContainText("5 / 5");
   await drag(20);
+  await expect(counter(page)).toContainText("5 / 5");
   await drag(-60, 120);
   await expect(counter(page)).toContainText("5 / 5");
   await banner(page).getByRole("link", { name: "히든카이스 시리즈 보기" }).click();
