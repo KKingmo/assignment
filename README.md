@@ -2,7 +2,7 @@
 
 Next.js와 Supabase를 사용하는 교재 스토어 프로젝트다. 디자인 토큰·공통 UI와 반응형 화면을 구성하고, 브라우저에서 Supabase의 교재 목록을 조회한다. 기능별 진행 상태는 [구현 계획](docs/implementation-plan.md), 모듈 책임과 데이터 흐름은 [아키텍처](docs/architecture.md), 토큰과 컴포넌트 적용 기준은 [디자인 시스템](docs/design-system.md)에서 관리한다.
 
-저장소: [KKingmo/hidden-kice](https://github.com/KKingmo/hidden-kice). 로컬 프로덕션 모드의 통합 검증을 완료했으며 Vercel 배포와 공개 주소 검증은 8단계에서 진행한다.
+저장소: [KKingmo/assignment](https://github.com/KKingmo/assignment). 로컬 프로덕션 모드의 통합 검증을 완료했으며 Vercel 배포와 공개 주소 검증은 8단계에서 진행한다.
 
 헤더·배너·검색 영역·상품 카드·페이지 이동·푸터를 표시한다. Supabase의 교재 18개를 검색·분류하고 12개 단위로 탐색한다. 검색 조건과 페이지를 URL에 저장해 새로고침·뒤로 가기에서도 복원한다. 로딩·빈 결과·조회 실패·재시도·이미지 실패 상태를 제공한다. 장바구니 담기·수량·합계·삭제와 같은 브라우저의 보관을 제공한다. 배너는 5개 번호를 자동·수동으로 순환하며 hover·포커스·동작 줄이기 설정을 처리한다. 페이지별 서버 메타데이터와 탐색 URL의 색인 정책을 제공한다.
 
