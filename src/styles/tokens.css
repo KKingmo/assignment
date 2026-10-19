@@ -1,0 +1,92 @@
+:root {
+  /* Palette */
+  --white: #fff;
+  --black: #000;
+  --gray-25: #fafafa;
+  --gray-50: #e9eaec;
+  --gray-200: #b2b6bd;
+  --gray-300: #979ca5;
+  --gray-600: #666b75;
+  --purple-50: #f4f3fc;
+  --purple-500: #7f77dd;
+  --purple-600: #6860c5;
+  --orange-500: #c9794e;
+
+  /* Semantic colors */
+  --color-brand: var(--purple-500);
+  --color-brand-hover: var(--purple-600);
+  --color-brand-subtle: var(--purple-50);
+  --color-text: var(--black);
+  --color-text-secondary: var(--gray-600);
+  --color-text-muted: var(--gray-300);
+  --color-text-faint: var(--gray-200);
+  --color-text-inverse: var(--white);
+  --color-surface: var(--white);
+  --color-surface-subtle: var(--gray-25);
+  --color-border: var(--gray-50);
+  --color-border-interactive: var(--gray-200);
+  --color-price-discount: var(--orange-500);
+  --color-focus: var(--purple-600);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-15: 60px;
+  --space-20: 80px;
+
+  /* Typography */
+  --font-family-body: var(--font-pretendard), sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-body: 1.6;
+  --line-height-tight: 1.2;
+
+  /* Shape, motion and controls */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-full: 999px;
+  --shadow-header: 0 3px 4px rgb(0 0 0 / 12%);
+  --shadow-floating: 0 2px 8px rgb(0 0 0 / 10%);
+  --duration-fast: 150ms;
+  --control-size: 40px;
+  --touch-target: 44px;
+  --icon-sm: 16px;
+  --icon-md: 24px;
+
+  /* Layout */
+  --content-width: 1280px;
+  --page-gutter: 40px;
+  --header-height: 100px;
+  --book-card-width: 250px;
+  --book-cover-ratio: 25 / 32;
+  --catalog-padding: 50px;
+  --pagination-gap: 46px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --page-gutter: 20px;
+    --catalog-padding: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+  }
+}

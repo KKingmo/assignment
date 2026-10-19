@@ -40,6 +40,7 @@ test("교재 이미지와 아이콘을 공개 경로에서 제공한다", async 
     ["/icons/search.svg", "image/svg+xml"],
     ["/icons/bell.svg", "image/svg+xml"],
     ["/icons/user.svg", "image/svg+xml"],
+    ["/icons/close.svg", "image/svg+xml"],
   ] as const;
 
   for (const [path, contentType] of assets) {

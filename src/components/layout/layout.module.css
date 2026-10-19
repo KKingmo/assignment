@@ -1,0 +1,145 @@
+.header {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-header);
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  gap: var(--space-20);
+}
+
+.logo {
+  flex-shrink: 0;
+  color: var(--color-brand);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+}
+
+.navigation {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.menuItem {
+  flex-shrink: 0;
+  min-height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  transition: color var(--duration-fast);
+}
+
+.menuItem[aria-current="page"],
+.menuItem:hover,
+.menuItem:focus-visible {
+  color: var(--color-brand);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+.footer {
+  padding: var(--space-12) var(--space-15) var(--space-8);
+  color: var(--color-text-faint);
+  font-size: var(--font-size-xs);
+}
+
+.footerInner {
+  max-width: 1320px;
+  margin-inline: auto;
+}
+
+.footerMenu {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 0 0 var(--space-2);
+  list-style: none;
+  font-size: var(--font-size-sm);
+}
+
+.footerMenu li + li::before,
+.footer p span + span::before {
+  content: "|";
+  margin-inline: var(--space-2);
+}
+
+.footer p span {
+  display: inline-block;
+}
+
+.copyright {
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 1199px) {
+  .headerInner {
+    gap: var(--space-10);
+  }
+
+  .navigation {
+    gap: var(--space-5);
+  }
+
+  .menuItem {
+    font-size: var(--font-size-md);
+  }
+
+  .actions {
+    gap: 0;
+  }
+}
+
+@media (max-width: 899px) {
+  .headerInner {
+    height: auto;
+    min-height: var(--header-height);
+    flex-wrap: wrap;
+    row-gap: 0;
+    padding-block: var(--space-3) var(--space-2);
+  }
+
+  .logo {
+    font-size: 22px;
+  }
+
+  .navigation {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .menuItem {
+    font-size: var(--font-size-sm);
+  }
+
+  .footer {
+    padding: var(--space-8) var(--page-gutter);
+  }
+
+  .footer p span + span::before {
+    content: none;
+  }
+
+  .footer p span {
+    display: block;
+  }
+}

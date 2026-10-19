@@ -1,0 +1,148 @@
+.button,
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: var(--control-size);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  transition: color var(--duration-fast), background var(--duration-fast), border-color var(--duration-fast);
+}
+
+.button:disabled,
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.primary {
+  background: var(--color-brand);
+  color: var(--color-text-inverse);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-brand-hover);
+}
+
+.outline {
+  border-color: var(--color-border-interactive);
+  color: var(--color-text-muted);
+}
+
+.outline:hover:not(:disabled),
+.ghost:hover:not(:disabled),
+.plain:hover:not(:disabled) {
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+.ghost[aria-pressed="true"] {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.iconButton {
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+}
+
+.floating {
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-floating);
+}
+
+.floating:hover,
+.floating:focus-visible {
+  background: var(--color-brand);
+  color: var(--color-text-inverse);
+}
+
+.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--icon-md);
+  height: var(--icon-md);
+  background: currentColor;
+  mask: var(--icon-source) center / contain no-repeat;
+}
+
+.icon.sm {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
+.textField {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  border: 1px solid var(--color-border-interactive);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+}
+
+.textField:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 1px var(--color-focus);
+}
+
+.textField input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.textField input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.textField:has(input:disabled) {
+  background: var(--color-surface-subtle);
+  opacity: 0.6;
+}
+
+.textField:has(input[aria-invalid="true"]) {
+  border-color: var(--color-price-discount);
+}
+
+.textField .iconButton {
+  width: var(--control-size);
+  height: var(--control-size);
+  min-height: var(--control-size);
+  border: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.brand {
+  color: var(--color-brand);
+}
+
+.inverse {
+  color: var(--color-text-inverse);
+}

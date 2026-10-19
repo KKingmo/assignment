@@ -1,6 +1,8 @@
 # Hidden Kice
 
-Next.js와 Supabase를 사용하는 교재 스토어 프로젝트다. 현재 앱 셸, 로컬 폰트와 정적 자산, 타입 검사·린트·테스트 실행 환경을 구성했다. 기능별 진행 상태는 [구현 계획](docs/implementation-plan.md), 모듈 책임과 데이터 흐름은 [아키텍처](docs/architecture.md)에서 관리한다.
+Next.js와 Supabase를 사용하는 교재 스토어 프로젝트다. 현재 디자인 토큰·공통 UI와 반응형 스토어의 정적 화면을 구성했다. 기능별 진행 상태는 [구현 계획](docs/implementation-plan.md), 모듈 책임과 데이터 흐름은 [아키텍처](docs/architecture.md), 토큰과 컴포넌트 적용 기준은 [디자인 시스템](docs/design-system.md)에서 관리한다.
+
+헤더·배너·검색 영역·상품 카드·페이지 이동·푸터를 표시한다. 상품 12개는 정적 데이터이며 Supabase 조회, 검색·필터·페이지 이동, 장바구니, 캐러셀 동작은 아직 연결하지 않았다. 배너는 기존 교재 이미지로 구성한 임시 그래픽으로 원본 이미지 교체가 남아 있다.
 
 ## 실행 환경
 
@@ -24,7 +26,7 @@ npm run start
 
 ## 환경변수
 
-현재 앱 셸은 환경변수 없이 실행된다. 교재 조회와 배포를 연결할 때 `.env.example`을 바탕으로 `.env.local`을 구성한다.
+현재 정적 화면은 환경변수 없이 실행된다. 교재 조회와 배포를 연결할 때 `.env.example`을 바탕으로 `.env.local`을 구성한다.
 
 | 변수 | 용도 |
 | --- | --- |
@@ -43,7 +45,7 @@ Pretendard Variable은 `next/font/local`로 제공한다. 폰트 파일과 라�
 ```bash
 npm run lint
 npm run typecheck
-npm run test:unit:list
+npm run test:unit
 npx playwright install chromium
 npm run test:e2e
 ```
@@ -54,12 +56,12 @@ npm run test:e2e
 | --- | --- | --- |
 | npm run lint | Next.js·TypeScript 규칙 | 통과 |
 | npm run typecheck | 라우트 타입 생성과 타입 검사 | 통과 |
-| npm run test:unit:list | Vitest 설정과 테스트 탐색 | 설정 로드 성공, 단위 테스트 0개 |
-| npm run test:e2e | 프로덕션 빌드·한국어 문서·폰트·정적 자산 | 2개 통과 |
+| npm run test:unit | 가격·할인율·원화 표시 | 9개 통과 |
+| npm run test:e2e | 한국어 문서·폰트·자산·상품 표시·반응형·hover·focus | 9개 통과 |
 
-단위 테스트는 `tests/unit/**/*.test.ts`에서 탐색하며 `npm run test:unit`으로 실행한다. 현재 도메인 규칙은 구현 전이므로 단위 테스트도 아직 없다. 실제 Supabase 연결 테스트는 `tests/live`에 추가하고 `npm run test:e2e:live`로 분리 실행한다.
+단위 테스트는 `tests/unit/**/*.test.ts`에서 탐색한다. 실제 Supabase 연결 테스트는 `tests/live`에 추가하고 `npm run test:e2e:live`로 분리 실행한다.
 
-현재 브라우저 검증 범위는 앱 셸과 자산 로딩이다. 상품 탐색·장바구니·캐러셀·SEO 정책과 배포 환경 검증은 각 기능 구현에 맞춰 추가한다.
+브라우저 검증은 Chromium의 1440px 데스크톱과 768·390·360px 터치 화면을 기준으로 한다. 캡처는 육안 비교용이며 픽셀 스냅샷 비교는 포함하지 않는다. 상품 탐색·장바구니·캐러셀·SEO 정책과 배포 환경 검증은 각 기능 구현에 맞춰 추가한다.
 
 ### 의존성 점검
 

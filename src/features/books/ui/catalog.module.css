@@ -1,0 +1,200 @@
+.catalog {
+  padding-block: var(--catalog-padding);
+  scroll-margin-top: var(--space-6);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 17px;
+  margin-bottom: var(--space-9);
+}
+
+.search {
+  width: 250px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-muted);
+}
+
+.filters button {
+  min-width: 44px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.filters button + button {
+  position: relative;
+}
+
+.filters button + button::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  width: 1px;
+  height: 12px;
+  background: var(--color-border-interactive);
+}
+
+.filters button:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, var(--book-card-width)));
+  justify-content: space-between;
+  column-gap: var(--space-8);
+  row-gap: var(--space-9);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  min-width: 0;
+  min-height: 431px;
+}
+
+.cover {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: var(--book-cover-ratio);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.coverImage {
+  object-fit: contain;
+}
+
+.addToCart {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  opacity: 0;
+  transition: opacity var(--duration-fast), background var(--duration-fast), color var(--duration-fast);
+}
+
+.card:hover .addToCart,
+.card:focus-within .addToCart {
+  opacity: 1;
+}
+
+.details {
+  padding-top: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+}
+
+.prices {
+  margin-top: var(--space-1);
+}
+
+.originalPrice {
+  display: block;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.salePrice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-body);
+}
+
+.discount {
+  color: var(--color-price-discount);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--pagination-gap);
+}
+
+.pagination button {
+  width: var(--control-size);
+  height: var(--control-size);
+  padding: 0;
+}
+
+@media (hover: none) {
+  .addToCart {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1099px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, var(--book-card-width)));
+  }
+
+  .card {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .toolbar {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  .search {
+    flex-basis: 100%;
+    width: 100%;
+    height: var(--touch-target);
+  }
+
+  .filters {
+    margin-left: auto;
+  }
+
+  .filters button {
+    min-height: var(--touch-target);
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, var(--book-card-width)));
+    column-gap: var(--space-5);
+    row-gap: var(--space-8);
+  }
+
+  .title {
+    font-size: var(--font-size-sm);
+  }
+
+  .salePrice {
+    font-size: var(--font-size-sm);
+    gap: var(--space-1);
+  }
+
+  .originalPrice {
+    font-size: var(--font-size-xs);
+  }
+
+  .pagination button {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+}
