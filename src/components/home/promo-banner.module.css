@@ -9,6 +9,18 @@
 .viewport {
   position: relative;
   overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+.viewport[data-swiping="true"] {
+  user-select: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .viewport {
+    cursor: grab;
+  }
+  .viewport[data-swiping="true"] {
+    cursor: grabbing;
+  }
 }
 .slide {
   position: relative;
@@ -171,8 +183,7 @@
 .controlRow {
   position: absolute;
   bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: max(32px, calc((100% - 1760px) / 2 + 32px));
   display: flex;
   justify-content: flex-end;
   pointer-events: none;
@@ -348,9 +359,8 @@
   .controlRow {
     position: relative;
     bottom: auto;
-    left: auto;
-    transform: none;
-    justify-content: center;
+    right: auto;
+    padding-inline: 20px;
     padding-top: 16px;
     padding-bottom: var(--space-8);
   }

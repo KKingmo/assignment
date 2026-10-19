@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from "react";
 
 const SLIDE_COUNT = 5;
 const INTERVAL_MS = 5_000;
@@ -27,8 +27,10 @@ export function useBannerCarousel() {
   const [playRequested, setPlayRequested] = useState<boolean | null>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [swiping, setSwiping] = useState(false);
+  const gesture = useRef<{ id: number; x: number; y: number } | null>(null);
   const enabled = playRequested ?? !reducedMotion;
-  const playing = enabled && visible && !hovered && !focused;
+  const playing = enabled && visible && !hovered && !focused && !swiping;
   const moving = slide.previous !== null;
 
   const move = useCallback((direction: -1 | 1) => {
@@ -42,6 +44,35 @@ export function useBannerCarousel() {
   const finish = useCallback(() => {
     setSlide((current) => current.previous === null ? current : { ...current, previous: null });
   }, []);
+
+  function resetSwipe(event: PointerEvent<HTMLDivElement>) {
+    const current = gesture.current;
+    if (!current) return;
+    gesture.current = null;
+    setSwiping(false);
+    if (event.currentTarget.hasPointerCapture(current.id)) event.currentTarget.releasePointerCapture(current.id);
+  }
+
+  function startSwipe(event: PointerEvent<HTMLDivElement>) {
+    // 두 손가락 동작과 링크 클릭은 브라우저의 기본 동작으로 남긴다.
+    if (!event.isPrimary) {
+      resetSwipe(event);
+      return;
+    }
+    if (moving || event.button !== 0 || (event.target as Element).closest("a, button, input, select, textarea")) return;
+    gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    setSwiping(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function endSwipe(event: PointerEvent<HTMLDivElement>) {
+    const start = gesture.current;
+    if (!start || start.id !== event.pointerId) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    resetSwipe(event);
+    if (Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.25) move(dx < 0 ? 1 : -1);
+  }
 
   useEffect(() => {
     if (!playing) return;
@@ -57,8 +88,9 @@ export function useBannerCarousel() {
   }, [moving, reducedMotion, finish]);
 
   return {
-    ...slide, count: SLIDE_COUNT, enabled, playing, moving,
+    ...slide, count: SLIDE_COUNT, enabled, playing, moving, swiping,
     setHovered, setFocused, move, finish,
+    startSwipe, endSwipe, resetSwipe,
     toggle: () => setPlayRequested(!enabled),
   };
 }

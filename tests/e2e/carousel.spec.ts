@@ -74,7 +74,12 @@ test("hover·키보드 포커스 중 멈추고 수동 이동은 양끝을 순환
   await page.clock.runFor(750);
   await page.getByRole("button", { name: "다음 배너", exact: true }).press("Enter");
   await expect(counter(page)).toContainText("1 / 5");
+  await page.clock.runFor(750);
+  await expect(banner(page).locator("[inert]")).toHaveCount(0);
   await page.getByRole("textbox", { name: "교재 검색" }).focus();
+  // 포커스로 화면이 스크롤된 후 포인터도 배너 밖으로 옮긴다.
+  await page.getByRole("textbox", { name: "교재 검색" }).hover();
+  await expect(counter(page)).toHaveAttribute("aria-live", "off");
   await page.clock.runFor(5_000);
   await expect(counter(page)).toContainText("2 / 5");
 });
@@ -186,6 +191,8 @@ for (const width of [500, 905, 1200, 2841]) {
       expect(artwork.y + artwork.height).toBeCloseTo(bounds.y + bounds.height, 0);
     }
     expect(bounds.y + bounds.height - (controls.y + controls.height)).toBeGreaterThanOrEqual(32);
+    const rightInset = width < 768 ? 20 : Math.max(32, (width - 1760) / 2 + 32);
+    expect(width - (controls.x + controls.width)).toBeCloseTo(rightInset, 0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
     await expect(region.locator("img")).toBeVisible();
     await expect.poll(() => region.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);

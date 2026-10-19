@@ -34,7 +34,7 @@ function PromoSlide({ active }: { active: boolean }) {
         </a>
       </div>
       <div className={styles.artwork}>
-        <Image src="/images/banners/banner.webp" alt="" fill sizes="(max-width: 767px) 220vw, (max-width: 1199px) 155vw, 1760px" preload={active} />
+        <Image src="/images/banners/banner.webp" alt="" fill sizes="(max-width: 767px) 220vw, (max-width: 1199px) 155vw, 1760px" preload={active} draggable={false} />
       </div>
     </div>
   );
@@ -49,14 +49,21 @@ export function PromoBanner() {
       aria-labelledby="promo-title"
       aria-roledescription="캐러셀"
       style={{ "--slide-direction": carousel.direction, "--slide-duration": `${SLIDE_DURATION_MS}ms` } as CSSProperties}
-      onMouseEnter={() => carousel.setHovered(true)}
-      onMouseLeave={() => carousel.setHovered(false)}
+      onPointerEnter={(event) => { if (event.pointerType === "mouse") carousel.setHovered(true); }}
+      onPointerLeave={(event) => { if (event.pointerType === "mouse") carousel.setHovered(false); }}
       onFocusCapture={() => carousel.setFocused(true)}
       onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) carousel.setFocused(false);
       }}
     >
-      <div className={styles.viewport}>
+      <div
+        className={styles.viewport}
+        data-swiping={carousel.swiping}
+        onPointerDown={carousel.startSwipe}
+        onPointerUp={carousel.endSwipe}
+        onPointerCancel={carousel.resetSwipe}
+        onLostPointerCapture={carousel.resetSwipe}
+      >
         {carousel.moving ? (
           <div key={`outgoing-${carousel.previous}`} className={`${styles.slide} ${styles.outgoing}`} aria-hidden="true" inert>
             <PromoSlide active={false} />
@@ -73,7 +80,7 @@ export function PromoBanner() {
           <PromoSlide active />
         </div>
       </div>
-      <div className={`container ${styles.controlRow}`}>
+      <div className={styles.controlRow}>
         <div className={styles.controls} role="group" aria-label="배너 조작">
           <IconButton icon="caret-left" label="이전 배너" size="sm" aria-disabled={carousel.moving} onClick={() => carousel.move(-1)} />
           <span className={styles.counter} aria-live={carousel.playing ? "off" : "polite"} aria-atomic="true">
