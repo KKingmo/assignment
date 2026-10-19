@@ -2,7 +2,7 @@
 
 Next.js 기반 교재 스토어의 모듈 책임, 데이터 흐름, 상태 관리와 검증 전략을 정의한다. 교재 조회는 Supabase를 사용하는 CSR로 구성하고, 검색 조건·서버 데이터·장바구니 상태를 분리한다.
 
-구현 순서와 진행 상태는 [구현 계획](implementation-plan.md), 실제 토큰과 공통 UI의 적용 기준은 [디자인 시스템](design-system.md)에서 관리한다. 아래 구조와 동작은 구현 목표를 기준으로 기술한다.
+구현 순서와 진행 상태는 [구현 계획](implementation-plan.md), 실제 토큰과 공통 UI의 적용 기준은 [디자인 시스템](design-system.md)에서 관리한다. 아래 구조와 동작은 구현 목표를 기준으로 기술한다. 현재 첫 페이지의 Supabase CSR 조회와 실패 처리를 구현했으며 검색·분류·URL 연동은 다음 단계에 해당한다.
 
 ## 기능 범위
 
@@ -42,7 +42,8 @@ src/
 public/images/books/            단품·패스 이미지
 supabase/
 ├─ migrations/                  테이블, 제약, 권한 정책
-└─ seed.sql                     상품 초기 데이터
+├─ seed.sql                     상품 초기 데이터
+└─ verify.sql                   데이터·권한·제약 확인
 tests/
 ├─ unit/                        Vitest 단위 테스트
 ├─ e2e/                         Playwright 사용자 흐름 테스트
@@ -116,7 +117,7 @@ sequenceDiagram
   Grid-->>User: 목록 / 빈 결과 / 재시도
 ```
 
-조회 키는 `['books', 'list', { query, kind, page, pageSize: 12 }]`다. 캐시 신선도는 60초로 두며 창 포커스 복귀 시 자동 재조회와 TanStack Query의 자동 재시도는 끈다. 실패 후에는 현재 조건으로 명시적으로 재시도한다.
+조회 키의 최종 형태는 `['books', 'list', { query, kind, page, pageSize: 12 }]`다. 현재 구현은 `{ page, pageSize: 12 }`를 사용하며 검색·분류 연결 시 두 조건을 함께 추가한다. 캐시 신선도는 60초로 두며 창 포커스 복귀 시 자동 재조회와 TanStack Query·Supabase SDK의 자동 재시도는 끈다. SDK의 요청 제한 시간은 15초다. 실패 후에는 현재 조건으로 명시적으로 재시도한다.
 
 `getBooks`는 필요한 컬럼과 정확한 전체 개수를 요청하고 상품명 부분 검색과 분류 조건을 적용한다. `sort_order`, `id` 순서로 정렬하며 조회 범위는 `시작=(page-1)×12`, `끝=시작+11`이다. 전체 개수는 페이지 범위 적용 전의 검색·분류 결과를 기준으로 한다.
 

@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
 const baseURL = externalBaseURL ?? "http://127.0.0.1:3100";
+const live = process.env.PLAYWRIGHT_LIVE === "1";
 
 export default defineConfig({
   fullyParallel: true,
@@ -34,5 +35,9 @@ export default defineConfig({
         url: baseURL,
         reuseExistingServer: false,
         timeout: 120_000,
+        env: live ? undefined : {
+          NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "public-e2e-test-key",
+        },
       },
 });

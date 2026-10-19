@@ -1,3 +1,5 @@
+export const BOOKS_PAGE_SIZE = 12;
+
 export type BookKind = "single" | "pass";
 
 export type Book = {

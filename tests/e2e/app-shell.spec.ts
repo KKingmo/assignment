@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../support/catalog-fixture";
 
 test("한국어 문서와 로컬 Pretendard 폰트를 표시한다", async ({ page }) => {
   const fontResponse = page.waitForResponse((response) =>

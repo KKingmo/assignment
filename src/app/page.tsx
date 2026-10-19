@@ -1,9 +1,9 @@
 import { PromoBanner } from "@/components/home/promo-banner";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { previewBooks } from "@/features/books/data/preview-books";
-import { BookGrid } from "@/features/books/ui/book-grid";
-import { CatalogPagination } from "@/features/books/ui/catalog-pagination";
+import { Suspense } from "react";
+import { BookCatalog } from "@/features/books/ui/book-catalog";
+import { BookGridSkeleton } from "@/features/books/ui/book-grid-skeleton";
 import { CatalogToolbar } from "@/features/books/ui/catalog-toolbar";
 import styles from "@/features/books/ui/catalog.module.css";
 
@@ -17,8 +17,9 @@ export default function StorePage() {
         <PromoBanner />
         <section id="catalog" className={`container ${styles.catalog}`} aria-label="교재 스토어" tabIndex={-1}>
           <CatalogToolbar />
-          <BookGrid books={previewBooks} />
-          <CatalogPagination />
+          <Suspense fallback={<BookGridSkeleton />}>
+            <BookCatalog />
+          </Suspense>
         </section>
       </main>
       <SiteFooter />

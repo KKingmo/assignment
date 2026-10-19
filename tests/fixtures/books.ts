@@ -1,7 +1,7 @@
-import type { Book } from "../model/book";
+import type { Book } from "../../src/features/books/model/book";
 
-// 정적 화면용 데이터. Supabase 조회 연결 시 제거한다.
-export const previewBooks: Book[] = [
+// UI 테스트에서 사용하는 첫 페이지의 고정 상품.
+export const fixtureBooks: Book[] = [
   {
     "id": "93fefe57-3102-585b-938d-e3f6426d3724",
     "title": "2027 Hidden Kice 시즌5",
@@ -99,3 +99,13 @@ export const previewBooks: Book[] = [
     "salePrice": 241200
   }
 ];
+
+export const bookRows = fixtureBooks.map((book, index) => ({
+  id: book.id,
+  title: book.title,
+  kind: book.kind,
+  cover_path: book.coverPath,
+  list_price: book.listPrice,
+  sale_price: book.salePrice,
+  sort_order: index + 1,
+}));

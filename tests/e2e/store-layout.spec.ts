@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, mockBooks } from "../support/catalog-fixture";
 
 test("1440px에서 시안의 4열 배치와 카드 크기를 유지한다", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -69,6 +69,7 @@ for (const width of [360, 390, 768]) {
     });
     try {
       const page = await context.newPage();
+      await mockBooks(page);
       await page.goto("/");
       await page.evaluate(() => document.fonts.ready);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
