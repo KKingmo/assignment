@@ -1,4 +1,5 @@
 import { IconButton } from "../ui/icon-button";
+import { CartButton } from "@/features/cart/ui/cart-button";
 import styles from "./layout.module.css";
 
 const menuItems = ["스토어", "AI OMR WORK", "챌린지", "히든카이스 소개"];
@@ -22,7 +23,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className={styles.actions}>
-          <IconButton icon="shopping-cart" label="장바구니" aria-disabled="true" />
+          <CartButton />
           <IconButton icon="bell" label="알림" aria-disabled="true" />
           <IconButton icon="user" label="내 계정" aria-disabled="true" />
         </div>

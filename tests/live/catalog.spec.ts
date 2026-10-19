@@ -100,3 +100,27 @@ test("실제 416 응답을 정확한 개수로 복구해 마지막 페이지와 
   expect(new URL(page.url()).searchParams.has("page")).toBe(false);
   expect(new URL(page.url()).searchParams.get("kind")).toBe("pass");
 });
+
+test("실제 ID 조회로 목록 밖 교재의 장바구니 합계와 새로고침 복구를 확인한다", async ({ page }, testInfo) => {
+  const last = allBookRows.at(-1)!;
+  const pass = allBookRows[1];
+  const cart = page.getByRole("button", { name: /^장바구니(, 총 \d+개)?$/ });
+  await page.goto("/?page=2");
+  const addLast = page.getByRole("article", { name: last.title, exact: true }).getByRole("button", { name: /장바구니에 담기$/ });
+  await addLast.click(); await addLast.click();
+  await page.getByRole("button", { name: "이전 페이지" }).click();
+  await page.getByRole("article", { name: pass.title, exact: true }).getByRole("button", { name: /장바구니에 담기$/ }).click();
+  const response = page.waitForResponse((result) => result.url().startsWith(`${url}/rest/v1/books?`) && new URL(result.url()).searchParams.has("id"));
+  await cart.click();
+  const data = await response;
+  expect(data.status()).toBe(200);
+  expect((await data.json()).map((row: { id: string }) => row.id).sort()).toEqual([last.id, pass.id].sort());
+  const drawer = page.getByRole("dialog", { name: "장바구니", exact: true });
+  await expect(drawer.getByRole("group", { name: "장바구니 합계" })).toContainText("247,400원");
+  await expect(drawer.getByRole("article", { name: last.title, exact: true }).getByLabel("수량", { exact: true })).toHaveText("2");
+  await page.reload();
+  await expect(cart).toHaveAccessibleName("장바구니, 총 3개");
+  await cart.click();
+  await expect(drawer.getByRole("group", { name: "장바구니 합계" })).toContainText("247,400원");
+  await page.screenshot({ path: testInfo.outputPath("cart-live.png") });
+});

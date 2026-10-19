@@ -14,6 +14,8 @@ export async function fulfillBooks(route: Route, rows = bookRows, total = 18, of
 
 export async function fulfillCatalogRequest(route: Route) {
   const params = new URL(route.request().url()).searchParams;
+  const ids = params.get("id")?.slice(4, -1).split(",");
+  if (ids) return route.fulfill({ json: allBookRows.filter((row) => ids.includes(row.id)) });
   const kind = params.get("kind")?.slice(3);
   const title = params.get("title");
   const pattern = title ? new RegExp(title.slice("imatch.".length), "i") : undefined;

@@ -55,7 +55,7 @@ test("메뉴 hover와 키보드 focus, 카드 담기 버튼 표시를 제공한�
   await expect(add).toHaveCSS("opacity", "1");
   await expect(add).toHaveCSS("outline-style", "solid");
   await expect(add).toHaveCSS("outline-width", "2px");
-  await expect(add).toHaveAttribute("aria-disabled", "true");
+  await expect(add).toBeEnabled();
 });
 
 for (const width of [360, 390, 768]) {

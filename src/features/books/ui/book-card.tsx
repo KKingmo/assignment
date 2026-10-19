@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { IconButton } from "@/components/ui/icon-button";
+import { AddToCartButton } from "@/features/cart/ui/add-to-cart-button";
 import type { Book } from "../model/book";
 import { formatWon, getBookPrice } from "../model/book-price";
 import styles from "./catalog.module.css";
@@ -27,11 +27,9 @@ export function BookCard({ book }: { book: Book }) {
           className={styles.coverImage}
           onError={() => setFailedCover(book.coverPath)}
         />}
-        <IconButton
-          icon="shopping-cart"
-          label={`${book.title} 장바구니에 담기`}
-          variant="floating"
-          aria-disabled="true"
+        <AddToCartButton
+          bookId={book.id}
+          title={book.title}
           className={styles.addToCart}
         />
       </div>
