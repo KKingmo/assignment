@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { test, expect } from "@playwright/test";
-import { bookRows } from "../fixtures/books";
+import { allBookRows, bookRows } from "../fixtures/books";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
@@ -45,7 +45,7 @@ test("공개 키로 18개 조회가 가능하고 추가·수정·삭제는 거�
   expect(rows).toHaveLength(18);
   expect(rows.filter((row: { kind: string }) => row.kind === "single")).toHaveLength(12);
   expect(rows.filter((row: { kind: string }) => row.kind === "pass")).toHaveLength(6);
-  expect(rows.slice(0, 12)).toEqual(bookRows);
+  expect(rows).toEqual(allBookRows);
 
   // 권한이 잘못 설정되어도 유효한 행을 만들거나 기존 데이터를 변경하지 않는다.
   const absentId = "00000000-0000-0000-0000-000000000000";
@@ -57,4 +57,46 @@ test("공개 키로 18개 조회가 가능하고 추가·수정·삭제는 거�
     expect([401, 403]).toContain(denied.status());
     expect(await denied.json()).toMatchObject({ code: "42501" });
   }
+});
+
+test("실제 DB에서 두 번째 페이지·분류·문자 부분 검색이 일치한다", async ({ page }) => {
+  await page.goto("/?page=2");
+  await expect(page.getByRole("article")).toHaveCount(6);
+  for (const row of allBookRows.slice(12)) await expect(page.getByRole("article", { name: row.title, exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "패스", exact: true }).click();
+  await expect(page.getByRole("status")).toHaveText("전체 6개");
+  await expect(page.getByRole("article").getByText("패스", { exact: true })).toHaveCount(6);
+  const input = page.getByRole("textbox", { name: "교재 검색" });
+  await input.fill("(미적분, 확통)");
+  await input.press("Enter");
+  await expect(page.getByRole("article")).toHaveCount(4);
+  await page.getByRole("button", { name: "검색어 초기화", exact: true }).click();
+  await expect(page.getByRole("status")).toHaveText("전체 6개");
+  await page.getByRole("button", { name: "단품", exact: true }).click();
+  await expect(page.getByRole("article")).toHaveCount(12);
+  await input.fill("hidden kice");
+  await input.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("전체 12개");
+  // SQL/정규식 특수문자가 전체 일치나 오류로 확장되지 않는다.
+  for (const query of ["%", "_", "*", "\\", ".", "["]) {
+    await input.fill(query);
+    await input.press("Enter");
+    await expect(page.getByRole("status")).toHaveText("전체 0개");
+    await expect(page.getByText("검색 조건에 맞는 교재가 없습니다.")).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("q")).toBe(query);
+  }
+});
+
+test("실제 416 응답을 정확한 개수로 복구해 마지막 페이지와 빈 결과를 구분한다", async ({ page }) => {
+  const rangeError = page.waitForResponse((response) => response.url().includes("/rest/v1/books?") && response.status() === 416);
+  await page.goto("/?page=99");
+  expect((await rangeError).status()).toBe(416);
+  await expect(page).toHaveURL(/\?page=2$/);
+  await expect(page.getByRole("article")).toHaveCount(6);
+  await expect(page.getByRole("status")).toHaveText("전체 18개");
+  await page.goto("/?q=없는교재&kind=pass&page=99");
+  await expect(page.getByText("검색 조건에 맞는 교재가 없습니다.")).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("전체 0개");
+  expect(new URL(page.url()).searchParams.has("page")).toBe(false);
+  expect(new URL(page.url()).searchParams.get("kind")).toBe("pass");
 });

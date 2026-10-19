@@ -16,8 +16,7 @@ export default function StorePage() {
         <h1 className="sr-only">교재 스토어</h1>
         <PromoBanner />
         <section id="catalog" className={`container ${styles.catalog}`} aria-label="교재 스토어" tabIndex={-1}>
-          <CatalogToolbar />
-          <Suspense fallback={<BookGridSkeleton />}>
+          <Suspense fallback={<><CatalogToolbar disabled /><BookGridSkeleton /></>}>
             <BookCatalog />
           </Suspense>
         </section>

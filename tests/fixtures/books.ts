@@ -1,7 +1,7 @@
 import type { Book } from "../../src/features/books/model/book";
 
-// UI 테스트에서 사용하는 첫 페이지의 고정 상품.
-export const fixtureBooks: Book[] = [
+// seed와 대조하는 고정 데이터. 앱의 런타임에는 사용하지 않는다.
+export const allFixtureBooks: Book[] = [
   {
     "id": "93fefe57-3102-585b-938d-e3f6426d3724",
     "title": "2027 Hidden Kice 시즌5",
@@ -97,10 +97,59 @@ export const fixtureBooks: Book[] = [
     "coverPath": "/images/books/hidden-kice-book-pass.webp",
     "listPrice": 268000,
     "salePrice": 241200
+  },
+  {
+    "id": "deac2826-e03f-5d12-ad54-a81906679e2e",
+    "title": "시즌1~5 패스(미적분, 확통, 기하)",
+    "kind": "pass",
+    "coverPath": "/images/books/hidden-kice-book-pass.webp",
+    "listPrice": 192000,
+    "salePrice": 172800
+  },
+  {
+    "id": "f74e9f23-df4d-57f1-9163-1d6bfdb8940d",
+    "title": "2026 Hidden Kice 시즌5",
+    "kind": "single",
+    "coverPath": "/images/books/hidden-kice-book-single.webp",
+    "listPrice": 36000,
+    "salePrice": null
+  },
+  {
+    "id": "b2dbe358-c56d-5e3b-ae71-1f79c3926f97",
+    "title": "2026 Hidden Kice 시즌4",
+    "kind": "single",
+    "coverPath": "/images/books/hidden-kice-book-single.webp",
+    "listPrice": 40000,
+    "salePrice": null
+  },
+  {
+    "id": "ca088ebc-8a0f-5ecc-843a-29b8cf70eee4",
+    "title": "2026 Hidden Kice 시즌3",
+    "kind": "single",
+    "coverPath": "/images/books/hidden-kice-book-single.webp",
+    "listPrice": 36000,
+    "salePrice": null
+  },
+  {
+    "id": "0c2c30c4-7f08-509c-a065-fb81c9cd23a5",
+    "title": "2026 Hidden Kice 시즌2",
+    "kind": "single",
+    "coverPath": "/images/books/hidden-kice-book-single.webp",
+    "listPrice": 40000,
+    "salePrice": null
+  },
+  {
+    "id": "7abe0afa-fb13-59f8-b47f-5fd4bf1f32f4",
+    "title": "2026 Hidden Kice 시즌1",
+    "kind": "single",
+    "coverPath": "/images/books/hidden-kice-book-single.webp",
+    "listPrice": 40000,
+    "salePrice": null
   }
 ];
 
-export const bookRows = fixtureBooks.map((book, index) => ({
+export const fixtureBooks = allFixtureBooks.slice(0, 12);
+export const allBookRows = allFixtureBooks.map((book, index) => ({
   id: book.id,
   title: book.title,
   kind: book.kind,
@@ -109,3 +158,4 @@ export const bookRows = fixtureBooks.map((book, index) => ({
   sale_price: book.salePrice,
   sort_order: index + 1,
 }));
+export const bookRows = allBookRows.slice(0, 12);
