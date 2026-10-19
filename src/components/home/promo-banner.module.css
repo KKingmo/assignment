@@ -4,54 +4,23 @@
   overflow: hidden;
   color: var(--color-text-inverse);
   background: #101010;
-}
-
-.viewport {
-  position: relative;
-  overflow: hidden;
   touch-action: pan-y pinch-zoom;
-}
-.viewport[data-swiping="true"] {
   user-select: none;
 }
+
+.track {
+  display: flex;
+}
 @media (hover: hover) and (pointer: fine) {
-  .viewport {
-    cursor: grab;
-  }
-  .viewport[data-swiping="true"] {
-    cursor: grabbing;
-  }
+  .banner { cursor: grab; }
+  .banner[data-swiping="true"],
+  .banner[data-swiping="true"] button { cursor: grabbing; }
 }
 .slide {
   position: relative;
   isolation: isolate;
-  width: 100%;
-}
-.incoming {
-  animation: slide-in var(--slide-duration) cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.outgoing {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  animation: slide-out var(--slide-duration) cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes slide-in {
-  from {
-    transform: translateX(calc(var(--slide-direction) * 100%));
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-@keyframes slide-out {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(calc(var(--slide-direction) * -100%));
-  }
+  flex: 0 0 100%;
+  min-width: 0;
 }
 
 .inner {
@@ -205,9 +174,6 @@
   color: var(--promo-accent);
   border-color: transparent;
   background: rgb(255 255 255 / 12%);
-}
-.controls button[aria-disabled="true"] {
-  cursor: default;
 }
 .counter {
   min-width: 46px;
@@ -363,11 +329,5 @@
     padding-inline: 20px;
     padding-top: 16px;
     padding-bottom: var(--space-8);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .incoming, .outgoing {
-    animation: none;
   }
 }

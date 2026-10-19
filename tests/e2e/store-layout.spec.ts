@@ -91,7 +91,8 @@ for (const width of [360, 390, 768]) {
       await expect(page.getByRole("textbox", { name: "교재 검색" })).toBeVisible();
       await expect(page.getByRole("button", { name: "히든카이스 소개", exact: true })).toBeInViewport();
       const banner = page.getByRole("region", { name: "히든카이스", exact: true });
-      for (const title of ["실전 적중", "난이도별 구성", "검증된 결과"]) await expect(banner.getByText(title, { exact: true })).toBeVisible();
+      const activeSlide = banner.locator('[aria-roledescription="슬라이드"][aria-hidden="false"]');
+      for (const title of ["실전 적중", "난이도별 구성", "검증된 결과"]) await expect(activeSlide.getByText(title, { exact: true })).toBeVisible();
       const nextBanner = banner.getByRole("button", { name: "다음 배너", exact: true });
       expect((await nextBanner.boundingBox())?.width).toBe(44);
       expect((await nextBanner.boundingBox())?.height).toBe(44);

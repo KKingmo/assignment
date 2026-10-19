@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "../support/catalog-fixture";
 
 const banner = (page: Page) => page.getByRole("region", { name: "히든카이스", exact: true });
+const activeSlide = (page: Page) => banner(page).locator('[aria-roledescription="슬라이드"][aria-hidden="false"]');
 const counter = (page: Page) => banner(page).locator('[aria-live]');
 
 async function openWithClock(page: Page) {
@@ -19,14 +20,14 @@ test("첨부 배너와 SVG, Pretendard와 할인율 색상을 적용한다", asy
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
-  await expect(banner(page).locator("img")).toHaveAttribute("src", /banners%2Fbanner.webp/);
-  expect(await banner(page).locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(activeSlide(page).locator("img")).toHaveAttribute("src", /banners%2Fbanner.webp/);
+  expect(await activeSlide(page).locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   await expect(banner(page).getByRole("heading")).toHaveCSS("font-size", "64px");
   await expect(banner(page).getByRole("heading")).toHaveCSS("font-weight", "700");
-  await expect(banner(page).getByText("모두가 푸는 건 이유가 있습니다")).toHaveCSS("font-size", "48px");
+  await expect(activeSlide(page).getByText("모두가 푸는 건 이유가 있습니다")).toHaveCSS("font-size", "48px");
   for (const [label, icon] of [["실전 적중", "crosshair"], ["난이도별 구성", "chart-bar"], ["검증된 결과", "trophy"]]) {
-    await expect(banner(page).getByText(label, { exact: true })).toHaveCSS("color", "rgb(250, 98, 47)");
-    await expect(banner(page).locator(`span[style*="${icon}.svg"]`)).toHaveCSS("background-color", "rgb(250, 98, 47)");
+    await expect(activeSlide(page).getByText(label, { exact: true })).toHaveCSS("color", "rgb(250, 98, 47)");
+    await expect(activeSlide(page).locator(`span[style*="${icon}.svg"]`)).toHaveCSS("background-color", "rgb(250, 98, 47)");
   }
   await expect(banner(page).getByRole("link")).toHaveCSS("border-color", "rgb(250, 98, 47)");
   const next = banner(page).getByRole("button", { name: "다음 배너", exact: true });
@@ -46,7 +47,7 @@ test("5초마다 5개 번호를 자동 순환하고 자동 변경은 반복 낭�
     if (index !== 2) {
       // 전환 종료의 React 렌더를 확정한 뒤 다음 자동 재생 시점까지 진행한다.
       await page.clock.runFor(750);
-      await expect(banner(page).locator("[inert]")).toHaveCount(0);
+      await expect(banner(page).locator("[inert]")).toHaveCount(4);
     }
     await page.clock.runFor(index === 2 ? 1 : 4_250);
     await expect(counter(page)).toContainText(`${index} / 5`);
@@ -75,7 +76,7 @@ test("hover·키보드 포커스 중 멈추고 수동 이동은 양끝을 순환
   await page.getByRole("button", { name: "다음 배너", exact: true }).press("Enter");
   await expect(counter(page)).toContainText("1 / 5");
   await page.clock.runFor(750);
-  await expect(banner(page).locator("[inert]")).toHaveCount(0);
+  await expect(banner(page).locator("[inert]")).toHaveCount(4);
   await page.getByRole("textbox", { name: "교재 검색" }).focus();
   // 포커스로 화면이 스크롤된 후 포인터도 배너 밖으로 옮긴다.
   await page.getByRole("textbox", { name: "교재 검색" }).hover();
@@ -107,7 +108,7 @@ test("동작 줄이기에서는 정지 상태로 시작하고 사용자가 수�
   await expect(counter(page)).toContainText("1 / 5");
   await page.getByRole("button", { name: "다음 배너", exact: true }).click();
   await expect(counter(page)).toContainText("2 / 5");
-  await expect(banner(page).locator("[inert]")).toHaveCount(0);
+  await expect(banner(page).locator("[inert]")).toHaveCount(4);
   expect(await banner(page).evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
   await page.getByRole("button", { name: "배너 자동 재생 시작" }).click();
   await page.getByRole("textbox", { name: "교재 검색" }).focus();
@@ -117,50 +118,39 @@ test("동작 줄이기에서는 정지 상태로 시작하고 사용자가 수�
   await expect(counter(page)).toContainText("3 / 5");
 });
 
-test("다음·이전·양끝 순환 시 화면이 해당 방향으로 이동하며 조작부는 고정된다", async ({ page }) => {
+test("다음·이전·양끝 순환 시 해당 방향으로 이동하며 조작부 포커스를 유지한다", async ({ page }) => {
   await openWithClock(page);
   const controls = banner(page).getByRole("group", { name: "배너 조작" });
   const controlBox = await controls.boundingBox();
-
   for (const [button, index, direction] of [
     ["다음 배너", 2, 1], ["이전 배너", 1, -1], ["이전 배너", 5, -1], ["다음 배너", 1, 1],
   ] as const) {
     await controls.getByRole("button", { name: button, exact: true }).click();
-    const active = banner(page).getByRole("group", { name: `5개 중 ${index}번째` });
-    const outgoing = banner(page).locator("[inert]");
-    await expect(outgoing).toHaveCount(1);
-    await banner(page).evaluate((element) => {
-      for (const animation of element.getAnimations({ subtree: true })) {
-        animation.pause();
-        animation.currentTime = 150;
-      }
-    });
+    await expect(counter(page)).toContainText(`${index} / 5`);
+    await page.clock.runFor(80);
+    const active = activeSlide(page);
     expect((await active.boundingBox())!.x * direction).toBeGreaterThan(0);
-    expect((await outgoing.boundingBox())!.x * direction).toBeLessThan(0);
-    await expect(outgoing).toHaveAttribute("aria-hidden", "true");
+    await expect(banner(page).locator("[inert]")).toHaveCount(4);
     await expect(banner(page).getByRole("link", { name: "히든카이스 시리즈 보기" })).toHaveCount(1);
     expect(await controls.boundingBox()).toEqual(controlBox);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize()!.width);
-    await banner(page).evaluate((element) => element.getAnimations({ subtree: true }).forEach((animation) => animation.finish()));
-    await expect(outgoing).toHaveCount(0);
+    await page.clock.runFor(1_500);
+    expect(Math.abs((await active.boundingBox())!.x)).toBeLessThan(1);
     await expect(controls.getByRole("button", { name: button, exact: true })).toBeFocused();
-    expect((await active.boundingBox())!.x).toBe(0);
   }
 });
 
-test("전환 중 연속 입력을 막고 애니메이션이 취소되어도 다음 조작을 복구한다", async ({ page }) => {
+test("전환이 끝나기 전의 연속 버튼 클릭도 즉시 선택 번호에 반영한다", async ({ page }) => {
   await openWithClock(page);
   const next = banner(page).getByRole("button", { name: "다음 배너", exact: true });
   await next.click();
-  await expect(next).toHaveAttribute("aria-disabled", "true");
-  await next.dispatchEvent("click");
   await expect(counter(page)).toContainText("2 / 5");
-  await banner(page).evaluate((element) => element.getAnimations({ subtree: true }).forEach((animation) => animation.cancel()));
-  await page.clock.runFor(750);
-  await expect(next).toHaveAttribute("aria-disabled", "false");
-  await expect(banner(page).locator("[inert]")).toHaveCount(0);
   await next.click();
   await expect(counter(page)).toContainText("3 / 5");
+  await banner(page).getByRole("button", { name: "이전 배너", exact: true }).click();
+  await expect(counter(page)).toContainText("2 / 5");
+  await page.clock.runFor(1_500);
+  expect(Math.abs((await activeSlide(page).boundingBox())!.x)).toBeLessThan(1);
 });
 
 for (const width of [500, 905, 1200, 2841]) {
@@ -175,7 +165,7 @@ for (const width of [500, 905, 1200, 2841]) {
       const { x, y, width, height } = heading.parentElement!.getBoundingClientRect();
       return { x, y, width, height };
     });
-    const artwork = await region.locator("img").evaluate((img: HTMLImageElement) => {
+    const artwork = await activeSlide(page).locator("img").evaluate((img: HTMLImageElement) => {
       const { x, y, width, height } = img.parentElement!.getBoundingClientRect();
       return { x, y, width, height };
     });
@@ -194,8 +184,8 @@ for (const width of [500, 905, 1200, 2841]) {
     const rightInset = width < 768 ? 20 : Math.max(32, (width - 1760) / 2 + 32);
     expect(width - (controls.x + controls.width)).toBeCloseTo(rightInset, 0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
-    await expect(region.locator("img")).toBeVisible();
-    await expect.poll(() => region.locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    await expect(activeSlide(page).locator("img")).toBeVisible();
+    await expect.poll(() => activeSlide(page).locator("img").evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await region.screenshot({ path: testInfo.outputPath(`carousel-v2-${width}.png`) });
   });
 }

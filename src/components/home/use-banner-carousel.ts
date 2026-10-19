@@ -1,13 +1,11 @@
 "use client";
 
+import useEmblaCarousel from "embla-carousel-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from "react";
 
 const SLIDE_COUNT = 5;
 const INTERVAL_MS = 5_000;
-export const SLIDE_DURATION_MS = 650;
 const motionQuery = "(prefers-reduced-motion: reduce)";
-
-type SlideState = { index: number; previous: number | null; direction: -1 | 1 };
 
 function subscribeMotion(callback: () => void) {
   const query = window.matchMedia(motionQuery);
@@ -23,74 +21,70 @@ function subscribeVisibility(callback: () => void) {
 export function useBannerCarousel() {
   const reducedMotion = useSyncExternalStore(subscribeMotion, () => window.matchMedia(motionQuery).matches, () => true);
   const visible = useSyncExternalStore(subscribeVisibility, () => document.visibilityState === "visible", () => false);
-  const [slide, setSlide] = useState<SlideState>({ index: 0, previous: null, direction: 1 });
   const [playRequested, setPlayRequested] = useState<boolean | null>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [swiping, setSwiping] = useState(false);
-  const gesture = useRef<{ id: number; x: number; y: number } | null>(null);
+  const startIndex = useRef(0);
+  const cancelled = useRef(false);
+  const controlPress = useRef<{ x: number; y: number; dragged: boolean } | null>(null);
+  const [attachViewport, api] = useEmblaCarousel({
+    loop: true,
+    duration: 18,
+    watchFocus: false,
+    watchDrag(embla, event) {
+      if ((event.target as Element).closest("[data-carousel-cta]")) return false;
+      startIndex.current = embla.selectedScrollSnap();
+      cancelled.current = false;
+      const point = "touches" in event ? event.touches[0] : event;
+      controlPress.current = (event.target as Element).closest("button")
+        ? { x: point.clientX, y: point.clientY, dragged: false } : null;
+      return true;
+    },
+  });
+  const subscribeIndex = useCallback((callback: () => void) => {
+    api?.on("select", callback).on("reInit", callback);
+    return () => { api?.off("select", callback).off("reInit", callback); };
+  }, [api]);
+  const index = useSyncExternalStore(subscribeIndex, () => api?.selectedScrollSnap() ?? 0, () => 0);
   const enabled = playRequested ?? !reducedMotion;
   const playing = enabled && visible && !hovered && !focused && !swiping;
-  const moving = slide.previous !== null;
 
   const move = useCallback((direction: -1 | 1) => {
-    setSlide((current) => current.previous !== null ? current : {
-      index: (current.index + direction + SLIDE_COUNT) % SLIDE_COUNT,
-      previous: reducedMotion ? null : current.index,
-      direction,
-    });
-  }, [reducedMotion]);
-
-  const finish = useCallback(() => {
-    setSlide((current) => current.previous === null ? current : { ...current, previous: null });
-  }, []);
-
-  function resetSwipe(event: PointerEvent<HTMLDivElement>) {
-    const current = gesture.current;
-    if (!current) return;
-    gesture.current = null;
-    setSwiping(false);
-    if (event.currentTarget.hasPointerCapture(current.id)) event.currentTarget.releasePointerCapture(current.id);
-  }
-
-  function startSwipe(event: PointerEvent<HTMLDivElement>) {
-    // 두 손가락 동작과 링크 클릭은 브라우저의 기본 동작으로 남긴다.
-    if (!event.isPrimary) {
-      resetSwipe(event);
-      return;
-    }
-    if (moving || event.button !== 0 || (event.target as Element).closest("a, button, input, select, textarea")) return;
-    gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
-    setSwiping(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
-  function endSwipe(event: PointerEvent<HTMLDivElement>) {
-    const start = gesture.current;
-    if (!start || start.id !== event.pointerId) return;
-    const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    resetSwipe(event);
-    if (Math.abs(dx) >= 48 && Math.abs(dx) > Math.abs(dy) * 1.25) move(dx < 0 ? 1 : -1);
-  }
+    if (direction === 1) api?.scrollNext(reducedMotion);
+    else api?.scrollPrev(reducedMotion);
+  }, [api, reducedMotion]);
 
   useEffect(() => {
-    if (!playing) return;
+    if (!api) return;
+    const start = () => setSwiping(true);
+    const end = () => {
+      setSwiping(false);
+      if (cancelled.current) api.scrollTo(startIndex.current, true);
+      // 전환 중 버튼을 탭해도 드래그 종료가 직전 선택 번호를 되돌리지 않게 한다.
+      else if (controlPress.current && !controlPress.current.dragged) api.scrollTo(startIndex.current, reducedMotion);
+      else if (reducedMotion) api.scrollTo(api.selectedScrollSnap(), true);
+      cancelled.current = false;
+      controlPress.current = null;
+    };
+    api.on("pointerDown", start).on("pointerUp", end).on("reInit", end);
+    return () => { api.off("pointerDown", start).off("pointerUp", end).off("reInit", end); };
+  }, [api, reducedMotion]);
+
+  useEffect(() => {
+    if (!playing || !api) return;
     const timer = window.setTimeout(() => move(1), INTERVAL_MS);
     return () => window.clearTimeout(timer);
-  }, [playing, slide.index, move]);
-
-  useEffect(() => {
-    if (!moving) return;
-    // 탭 숨김·동작 줄이기 전환 등으로 animationend가 생략되어도 조작을 복구한다.
-    const timer = window.setTimeout(finish, reducedMotion ? 0 : SLIDE_DURATION_MS + 100);
-    return () => window.clearTimeout(timer);
-  }, [moving, reducedMotion, finish]);
+  }, [playing, index, api, move]);
 
   return {
-    ...slide, count: SLIDE_COUNT, enabled, playing, moving, swiping,
-    setHovered, setFocused, move, finish,
-    startSwipe, endSwipe, resetSwipe,
+    attachViewport, index, count: SLIDE_COUNT, enabled, playing, swiping,
+    setHovered, setFocused, move,
+    trackControlDrag: (event: PointerEvent<HTMLElement>) => {
+      const press = controlPress.current;
+      if (press && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 10) press.dragged = true;
+    },
+    cancelSwipe: () => { cancelled.current = true; },
     toggle: () => setPlayRequested(!enabled),
   };
 }

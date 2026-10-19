@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import type { CSSProperties } from "react";
 import { Icon, type IconName } from "../ui/icon";
 import { IconButton } from "../ui/icon-button";
-import { SLIDE_DURATION_MS, useBannerCarousel } from "./use-banner-carousel";
+import { useBannerCarousel } from "./use-banner-carousel";
 import styles from "./promo-banner.module.css";
 
 const highlights: { icon: IconName; title: string; description: string }[] = [
@@ -29,7 +28,7 @@ function PromoSlide({ active }: { active: boolean }) {
             </li>
           ))}
         </ul>
-        <a href="#catalog" className={styles.cta}>
+        <a href="#catalog" className={styles.cta} data-carousel-cta>
           히든카이스 시리즈 보기 <Icon name="arrow-right" />
         </a>
       </div>
@@ -41,54 +40,51 @@ function PromoSlide({ active }: { active: boolean }) {
 }
 
 export function PromoBanner() {
-  const carousel = useBannerCarousel();
+  const {
+    attachViewport, index: activeIndex, count, enabled, playing, swiping,
+    setHovered, setFocused, move, trackControlDrag, cancelSwipe, toggle,
+  } = useBannerCarousel();
 
   return (
     <section
+      ref={attachViewport}
       className={styles.banner}
       aria-labelledby="promo-title"
       aria-roledescription="캐러셀"
-      style={{ "--slide-direction": carousel.direction, "--slide-duration": `${SLIDE_DURATION_MS}ms` } as CSSProperties}
-      onPointerEnter={(event) => { if (event.pointerType === "mouse") carousel.setHovered(true); }}
-      onPointerLeave={(event) => { if (event.pointerType === "mouse") carousel.setHovered(false); }}
-      onFocusCapture={() => carousel.setFocused(true)}
+      data-swiping={swiping}
+      onPointerMoveCapture={trackControlDrag}
+      onTouchCancelCapture={cancelSwipe}
+      onPointerEnter={(event) => { if (event.pointerType === "mouse") setHovered(true); }}
+      onPointerLeave={(event) => { if (event.pointerType === "mouse") setHovered(false); }}
+      onFocusCapture={() => setFocused(true)}
       onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) carousel.setFocused(false);
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       }}
     >
-      <div
-        className={styles.viewport}
-        data-swiping={carousel.swiping}
-        onPointerDown={carousel.startSwipe}
-        onPointerUp={carousel.endSwipe}
-        onPointerCancel={carousel.resetSwipe}
-        onLostPointerCapture={carousel.resetSwipe}
-      >
-        {carousel.moving ? (
-          <div key={`outgoing-${carousel.previous}`} className={`${styles.slide} ${styles.outgoing}`} aria-hidden="true" inert>
-            <PromoSlide active={false} />
+      <div className={styles.track}>
+        {Array.from({ length: count }, (_, index) => (
+          <div
+            key={index}
+            className={styles.slide}
+            role="group"
+            aria-roledescription="슬라이드"
+            aria-label={`${count}개 중 ${index + 1}번째`}
+            aria-hidden={index !== activeIndex}
+            inert={index !== activeIndex}
+          >
+            <PromoSlide active={index === activeIndex} />
           </div>
-        ) : null}
-        <div
-          key={`active-${carousel.index}`}
-          className={`${styles.slide} ${carousel.moving ? styles.incoming : ""}`}
-          role="group"
-          aria-roledescription="슬라이드"
-          aria-label={`${carousel.count}개 중 ${carousel.index + 1}번째`}
-          onAnimationEnd={(event) => { if (event.target === event.currentTarget) carousel.finish(); }}
-        >
-          <PromoSlide active />
-        </div>
+        ))}
       </div>
       <div className={styles.controlRow}>
         <div className={styles.controls} role="group" aria-label="배너 조작">
-          <IconButton icon="caret-left" label="이전 배너" size="sm" aria-disabled={carousel.moving} onClick={() => carousel.move(-1)} />
-          <span className={styles.counter} aria-live={carousel.playing ? "off" : "polite"} aria-atomic="true">
-            <span className="sr-only">배너 {carousel.count}개 중 {carousel.index + 1}번째</span>
-            <span aria-hidden="true"><strong>{carousel.index + 1}</strong> / {carousel.count}</span>
+          <IconButton icon="caret-left" label="이전 배너" size="sm" onClick={() => move(-1)} />
+          <span className={styles.counter} aria-live={playing ? "off" : "polite"} aria-atomic="true">
+            <span className="sr-only">배너 {count}개 중 {activeIndex + 1}번째</span>
+            <span aria-hidden="true"><strong>{activeIndex + 1}</strong> / {count}</span>
           </span>
-          <IconButton icon="caret-right" label="다음 배너" size="sm" aria-disabled={carousel.moving} onClick={() => carousel.move(1)} />
-          <IconButton icon={carousel.enabled ? "pause" : "play"} label={carousel.enabled ? "배너 자동 재생 정지" : "배너 자동 재생 시작"} size="sm" onClick={carousel.toggle} />
+          <IconButton icon="caret-right" label="다음 배너" size="sm" onClick={() => move(1)} />
+          <IconButton icon={enabled ? "pause" : "play"} label={enabled ? "배너 자동 재생 정지" : "배너 자동 재생 시작"} size="sm" onClick={toggle} />
         </div>
       </div>
     </section>
